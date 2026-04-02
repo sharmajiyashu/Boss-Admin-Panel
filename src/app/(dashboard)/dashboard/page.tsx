@@ -19,6 +19,10 @@ import {
   IconCategory,
   IconPackage,
   IconHierarchy,
+  IconShoppingCart,
+  IconWallet,
+  IconTrendingUp,
+  IconShoppingBag,
 } from "@tabler/icons-react";
 import { twMerge } from "tailwind-merge";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -39,37 +43,49 @@ export default function DashboardPage() {
 
   const statCards = [
     {
-      title: "Total Categories",
-      value: "12",
-      icon: IconCategory,
-      color: "text-[#5A2A13]",
-      bg: "bg-[#5A2A13]/5",
-      border: "border-[#5A2A13]/10",
+      title: "Active Sellers",
+      value: "842",
+      icon: IconUsers,
+      color: "text-[#B5651D]",
+      bg: "bg-[#B5651D]/5",
+      border: "border-[#B5651D]/10",
+      trend: "+12.5% vs last month",
     },
     {
-      title: "Total Products",
-      value: "1,248",
+      title: "Total Buyers",
+      value: "12,402",
+      icon: IconShoppingBag,
+      color: "text-blue-600",
+      bg: "bg-blue-500/5",
+      border: "border-blue-500/10",
+      trend: "+8.2% vs last month",
+    },
+    {
+      title: "Live Products",
+      value: "45,280",
       icon: IconPackage,
       color: "text-emerald-600",
       bg: "bg-emerald-500/5",
       border: "border-emerald-500/10",
+      trend: "+15.4% vs last month",
     },
     {
-      title: "Active Sellers",
-      value: "452",
-      icon: IconUsers,
-      color: "text-blue-600",
-      bg: "bg-blue-500/5",
-      border: "border-blue-500/10",
-    },
-    {
-      title: "Pending Approvals",
-      value: "28",
-      icon: IconLoader2,
+      title: "Marketplace Revenue",
+      value: "$1.2M",
+      icon: IconWallet,
       color: "text-amber-600",
       bg: "bg-amber-500/5",
       border: "border-amber-500/10",
+      trend: "+5.1% vs last month",
     },
+  ];
+
+  const recentUsers = [
+    { id: "1", name: "Alex Johnson", email: "alex@example.com", role: "Seller", status: "Active", location: "New York, USA", date: "2 mins ago" },
+    { id: "2", name: "Sarah Smith", email: "sarah@example.com", role: "Buyer", status: "Active", location: "London, UK", date: "15 mins ago" },
+    { id: "3", name: "Mike Ross", email: "mike@example.com", role: "Seller", status: "Pending", location: "Toronto, CA", date: "45 mins ago" },
+    { id: "4", name: "Emily Davis", email: "emily@example.com", role: "Buyer", status: "Active", location: "Berlin, DE", date: "1 hour ago" },
+    { id: "5", name: "Robert Chen", email: "robert@example.com", role: "Seller", status: "Active", location: "Singapore", date: "3 hours ago" },
   ];
 
   return (
@@ -118,14 +134,22 @@ export default function DashboardPage() {
             </div>
 
             <div className="mt-6 space-y-1">
-              <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 leading-none">
-                {stat.title}
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 leading-none">
+                  {stat.title}
+                </h3>
+                {stat.trend && (
+                  <span className="text-[9px] font-bold text-emerald-500 flex items-center gap-0.5">
+                    <IconTrendingUp size={10} /> {stat.trend.split(' ')[0]}
+                  </span>
+                )}
+              </div>
               <div className="flex items-baseline gap-2">
                 <span className="text-3xl font-black tracking-tighter text-foreground tabular-nums">
                   {stat.value}
                 </span>
               </div>
+              <p className="text-[9px] font-bold text-muted-foreground/30 uppercase tracking-widest">{stat.trend?.split(' ').slice(1).join(' ')}</p>
             </div>
 
             {/* Subtle background glow */}
@@ -138,59 +162,64 @@ export default function DashboardPage() {
       </section>
 
       <div className="grid gap-6 lg:grid-cols-3 px-2">
-        {/* Recent Upcoming Bookings */}
+        {/* Recent Marketplace Activity */}
         <section className="lg:col-span-2 rounded-[2.5rem] border border-border bg-card p-8 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.05)] overflow-hidden">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl font-black tracking-tight text-foreground">
-              {t("dashboard.recentUpcoming")}
-            </h2>
-            <Link href="/bookings" className="text-[10px] font-black uppercase tracking-widest text-primary hover:underline flex items-center gap-1.5 leading-none">
-              View All <IconArrowRight size={14} />
+            <div>
+              <h2 className="text-xl font-black tracking-tight text-foreground">
+                Marketplace Activity
+              </h2>
+              <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest mt-1">Real-time user & transaction flow</p>
+            </div>
+            <Link href="/users" className="h-8 px-4 rounded-xl bg-muted/50 border border-border text-[9px] font-black uppercase tracking-widest text-foreground hover:bg-muted transition-all flex items-center gap-2">
+              Management Portal <IconArrowRight size={14} />
             </Link>
           </div>
 
           <div className="space-y-4">
-            {isLoading ? (
-              <div className="h-64 flex flex-col items-center justify-center gap-3">
-                <IconLoader2 size={32} className="animate-spin text-primary/30" />
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">Fetching schedules...</p>
-              </div>
-            ) : recentBookings.length === 0 ? (
-              <div className="h-64 flex flex-col items-center justify-center gap-4 text-center">
-                <div className="h-16 w-16 rounded-3xl bg-muted/30 flex items-center justify-center text-muted-foreground">
-                  <IconReceipt2 size={32} stroke={1.5} />
-                </div>
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest leading-relaxed">No upcoming itineraries<br />found for this week.</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-border/40">
-                {recentBookings.map((booking) => (
-                  <div key={booking.id} className="py-4 first:pt-0 last:pb-0 flex items-center justify-between group transition-all">
-                    <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-2xl bg-muted/50 border border-border/40 flex items-center justify-center text-muted-foreground group-hover:bg-primary/5 group-hover:text-primary transition-colors">
-                        <IconCalendarEvent size={24} stroke={1.5} />
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-xs font-black text-foreground line-clamp-1">{booking.tour.titleEn}</p>
-                        <div className="flex items-center gap-3 text-[10px] font-bold text-muted-foreground opacity-60">
-                          <span className="flex items-center gap-1 text-primary"><IconUser size={10} /> {booking.user.name}</span>
-                          <span className="flex items-center gap-1"><IconPhone size={10} /> {booking.user.mobile}</span>
-                        </div>
-                      </div>
+            <div className="divide-y divide-border/30">
+              {recentUsers.map((user) => (
+                <div key={user.id} className="py-4 first:pt-0 last:pb-0 flex items-center justify-between group transition-all">
+                  <div className="flex items-center gap-4">
+                    <div className={twMerge(
+                      "h-12 w-12 rounded-2xl flex items-center justify-center border transition-all",
+                      user.role === "Seller"
+                        ? "bg-[#B5651D]/5 border-[#B5651D]/10 text-[#B5651D]"
+                        : "bg-blue-500/5 border-blue-500/10 text-blue-600"
+                    )}>
+                      {user.role === "Seller" ? <IconShoppingBag size={22} stroke={1.5} /> : <IconUser size={22} stroke={1.5} />}
                     </div>
-                    <div className="text-right">
-                      <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-600 ring-1 ring-inset ring-emerald-500/10">
-                        <IconCircleCheck size={10} />
-                        {booking.status}
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <p className="text-[13px] font-black text-foreground">{user.name}</p>
+                        <span className={twMerge(
+                          "px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest border",
+                          user.role === "Seller" ? "bg-[#B5651D]/10 border-[#B5651D]/20 text-[#B5651D]" : "bg-blue-500/10 border-blue-500/20 text-blue-600"
+                        )}>
+                          {user.role}
+                        </span>
                       </div>
-                      <p className="text-[10px] font-bold text-muted-foreground/40 mt-1 uppercase tracking-widest tabular-nums">
-                        {new Date(booking.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                      </p>
+                      <div className="flex items-center gap-3 text-[10px] font-bold text-muted-foreground opacity-60">
+                        <span className="flex items-center gap-1"><IconMapPin size={10} /> {user.location}</span>
+                        <span className="flex items-center gap-1">{user.email}</span>
+                      </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
+                  <div className="text-right">
+                    <div className={twMerge(
+                      "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider ring-1 ring-inset",
+                      user.status === "Active" ? "bg-emerald-50 text-emerald-600 ring-emerald-500/10" : "bg-amber-50 text-amber-600 ring-amber-500/10"
+                    )}>
+                      <div className={twMerge("h-1 w-1 rounded-full bg-current", user.status === "Active" && "animate-pulse")} />
+                      {user.status}
+                    </div>
+                    <p className="text-[10px] font-bold text-muted-foreground/30 mt-1 uppercase tracking-widest tabular-nums">
+                      {user.date}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -201,30 +230,30 @@ export default function DashboardPage() {
               <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 leading-none">Administrative Shortcuts</h3>
             </div>
             <div className="grid gap-3">
-              <Link href="/categories" className="flex items-center justify-between p-4 rounded-2xl bg-[#5A2A13]/5 border border-[#5A2A13]/10 text-[#5A2A13] group transition-all hover:bg-[#5A2A13]/10 active:scale-[0.98]">
+              <Link href="/users" className="flex items-center justify-between p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100/50 text-indigo-900 group transition-all hover:bg-indigo-100/80 active:scale-[0.98]">
                 <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-[#5A2A13]">
+                  <div className="h-8 w-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-indigo-600">
+                    <IconUsers size={18} />
+                  </div>
+                  <span className="text-[11px] font-black uppercase tracking-widest">User Governance</span>
+                </div>
+                <IconArrowRight size={14} className="opacity-30 group-hover:translate-x-1 transition-transform" />
+              </Link>
+              <Link href="/categories" className="flex items-center justify-between p-4 rounded-2xl bg-[#B5651D]/5 border border-[#B5651D]/10 text-[#B5651D] group transition-all hover:bg-[#B5651D]/10 active:scale-[0.98]">
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-[#B5651D]">
                     <IconCategory size={18} />
                   </div>
-                  <span className="text-[11px] font-black uppercase tracking-widest">Marketplace Categories</span>
+                  <span className="text-[11px] font-black uppercase tracking-widest">Global Categories</span>
                 </div>
                 <IconArrowRight size={14} className="opacity-30 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <Link href="/subcategories" className="flex items-center justify-between p-4 rounded-2xl bg-purple-50/50 border border-purple-100/50 text-purple-900 group transition-all hover:bg-purple-100/80 active:scale-[0.98]">
+              <Link href="/products" className="flex items-center justify-between p-4 rounded-2xl bg-emerald-50/50 border border-emerald-100/50 text-emerald-900 group transition-all hover:bg-emerald-100/80 active:scale-[0.98]">
                 <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-purple-600">
-                    <IconHierarchy size={18} />
-                  </div>
-                  <span className="text-[11px] font-black uppercase tracking-widest">Field Definitions</span>
-                </div>
-                <IconArrowRight size={14} className="opacity-30 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <Link href="/products" className="flex items-center justify-between p-4 rounded-2xl bg-blue-50/50 border border-blue-100/50 text-blue-900 group transition-all hover:bg-blue-100/80 active:scale-[0.98]">
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-blue-600">
+                  <div className="h-8 w-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-emerald-600">
                     <IconPackage size={18} />
                   </div>
-                  <span className="text-[11px] font-black uppercase tracking-widest">Product Catalog</span>
+                  <span className="text-[11px] font-black uppercase tracking-widest">Catalog Review</span>
                 </div>
                 <IconArrowRight size={14} className="opacity-30 group-hover:translate-x-1 transition-transform" />
               </Link>
