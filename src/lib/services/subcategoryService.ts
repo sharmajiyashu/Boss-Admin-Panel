@@ -3,17 +3,39 @@ import { get, postFormData, putFormData, deleteRequest } from '../api';
 export interface FieldDefinition {
   label: string;
   key: string;
-  fieldType: 'text' | 'number' | 'boolean' | 'date' | 'select' | 'textarea' | 'switch' | 'checkbox';
+  fieldType: "text" | "number" | "boolean" | "date" | "select" | "textarea" | "switch" | "checkbox";
   options?: string[];
   isFilterable: boolean;
   isRequired: boolean;
+}
+
+/** API may return a Mongo id string or a populated category object. */
+export type SubcategoryCategoryRef =
+  | string
+  | {
+      _id?: string;
+      id?: string;
+      name?: string;
+    };
+
+export function subcategoryCategoryId(ref: SubcategoryCategoryRef): string {
+  if (typeof ref === "string") return ref;
+  const id = ref._id ?? ref.id;
+  return typeof id === "string" ? id : "";
+}
+
+export function subcategoryCategoryName(ref: SubcategoryCategoryRef): string {
+  if (typeof ref === "object" && ref !== null && typeof ref.name === "string" && ref.name.trim()) {
+    return ref.name;
+  }
+  return "N/A";
 }
 
 export interface Subcategory {
   id: string;
   _id?: string;
   name: string;
-  category: any; // Can be ID or populated object
+  category: SubcategoryCategoryRef;
   media?: {
     url: string;
     mimetype: string;

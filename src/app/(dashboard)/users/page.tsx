@@ -10,7 +10,6 @@ import {
   IconLoader2,
   IconX,
   IconDeviceFloppy,
-  IconAlertCircle,
   IconChevronLeft,
   IconChevronRight,
   IconMail,
@@ -20,6 +19,8 @@ import {
 import { twMerge } from "tailwind-merge";
 import * as Dialog from "@radix-ui/react-dialog";
 import { userService, type IUser } from "@/lib/services/userService";
+import { getErrorMessage } from "@/lib/errorMessage";
+import { NativeSelect } from "@/components/ui/NativeSelect";
 import { toast } from "react-toastify";
 
 export default function UsersPage() {
@@ -39,6 +40,11 @@ export default function UsersPage() {
     userRole: "user",
   });
 
+  const closeEditDialog = () => {
+    setIsEditOpen(false);
+    setSelectedUser(null);
+  };
+
   // Queries
   const { data: usersData, isLoading, isRefetching } = useQuery({
     queryKey: ["users", page, limit, searchTerm, roleFilter, cityFilter],
@@ -51,9 +57,10 @@ export default function UsersPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success("User updated successfully");
-      setIsEditOpen(false);
+      closeEditDialog();
     },
-    onError: (error: any) => toast.error(error.message || "Failed to update user"),
+    onError: (error: unknown) =>
+      toast.error(getErrorMessage(error, "Failed to update user")),
   });
 
   const handleEdit = (user: IUser) => {
@@ -99,28 +106,40 @@ export default function UsersPage() {
                 setSearchTerm(e.target.value);
                 setPage(1);
               }}
-              className="h-9 w-full rounded-xl border border-border bg-card/40 pl-9 pr-3 text-xs font-semibold focus:border-border focus:ring-0 outline-none"
+              className="h-9 w-full rounded-xl border-0 bg-muted/60 pl-9 pr-3 text-xs font-semibold text-foreground shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] outline-none focus:ring-2 focus:ring-[#B5651D]/20"
             />
           </div>
 
-          <div className="relative h-9 px-2 rounded-xl border border-border bg-card flex items-center">
-             <select 
-              value={roleFilter} 
-              onChange={e => {setRoleFilter(e.target.value); setPage(1);}}
-              className="bg-transparent text-[11px] font-bold outline-none cursor-pointer pr-4 appearance-none"
-             >
-                <option value="">All Roles</option>
-                <option value="user">User</option>
-                <option value="admin">Admin</option>
-             </select>
-             <div className="absolute right-2 pointer-events-none opacity-30">
-                <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-             </div>
+          <div className="w-[148px] min-w-[130px]">
+            <NativeSelect
+              value={roleFilter}
+              onChange={(e) => {
+                setRoleFilter(e.target.value);
+                setPage(1);
+              }}
+              aria-label="Filter by role"
+            >
+              <option value="">All roles</option>
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </NativeSelect>
           </div>
 
+          <input
+            type="text"
+            placeholder="City..."
+            value={cityFilter}
+            onChange={(e) => {
+              setCityFilter(e.target.value);
+              setPage(1);
+            }}
+            className="h-9 w-[140px] rounded-xl border-0 bg-muted/60 px-3 text-xs font-semibold text-foreground shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] outline-none focus:ring-2 focus:ring-[#B5651D]/20"
+          />
+
           <button
+            type="button"
             onClick={() => queryClient.invalidateQueries({ queryKey: ["users"] })}
-            className="h-9 w-9 flex items-center justify-center rounded-xl border border-border bg-card text-muted-foreground hover:bg-muted transition-all active:scale-95 shadow-none"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border-0 bg-muted/60 text-muted-foreground shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05] transition-all hover:bg-muted/80 active:scale-95"
             title="Refresh"
           >
             <IconReload className={twMerge("h-3.5 w-3.5", (isLoading || isRefetching) && "animate-spin")} />
@@ -129,7 +148,7 @@ export default function UsersPage() {
       </div>
 
       {/* Main Table identical to categories */}
-      <div className="overflow-hidden rounded-2xl border border-border/50 bg-card shadow-sm">
+      <div className="overflow-hidden rounded-2xl bg-card shadow-sm ring-1 ring-black/[0.04]">
         {isLoading ? (
           <div className="flex h-64 flex-col items-center justify-center gap-3">
             <IconLoader2 className="h-6 w-6 animate-spin text-muted-foreground/20" />
@@ -152,7 +171,7 @@ export default function UsersPage() {
                   <th className="px-8 py-4 text-right text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">Manage</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border/20">
+              <tbody className="divide-y divide-black/[0.04]">
                 {users.map((user) => (
                   <tr key={user.id} className="group transition-colors hover:bg-muted/[0.15]">
                     <td className="px-8 py-3.5">
@@ -213,7 +232,7 @@ export default function UsersPage() {
 
         {/* Floating Pagination Bar */}
         {meta && meta.totalPages > 1 && (
-          <div className="px-8 py-3 border-t border-border/20 flex items-center justify-between bg-muted/[0.04]">
+          <div className="flex items-center justify-between border-t border-black/[0.06] bg-muted/15 px-8 py-3">
             <div className="text-[10px] font-bold text-muted-foreground/30">
               Showing {((page - 1) * limit) + 1} - {Math.min(page * limit, meta.total)} of {meta.total} Users
             </div>
@@ -221,7 +240,7 @@ export default function UsersPage() {
               <button
                 disabled={page === 1}
                 onClick={() => setPage(p => Math.max(1, p - 1))}
-                className="h-7 w-7 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-white disabled:opacity-20 transition-all active:scale-95"
+                className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground ring-1 ring-black/[0.06] transition-all hover:bg-card disabled:opacity-20 active:scale-95"
               >
                 <IconChevronLeft size={14} />
               </button>
@@ -232,10 +251,10 @@ export default function UsersPage() {
                     key={p}
                     onClick={() => setPage(p)}
                     className={twMerge(
-                      "h-7 min-w-[28px] px-1.5 rounded-lg text-[10px] font-bold transition-all",
+                      "h-7 min-w-[28px] rounded-lg px-1.5 text-[10px] font-bold transition-all",
                       page === p
                         ? "bg-[linear-gradient(268.96deg,#B5651D_0.19%,#FE9738_99.72%)] text-white shadow-md shadow-[#B5651D]/10"
-                        : "text-muted-foreground hover:bg-white hover:text-[#B5651D]"
+                        : "text-muted-foreground ring-1 ring-transparent hover:bg-card hover:text-[#B5651D] hover:ring-black/[0.06]"
                     )}
                   >
                     {p}
@@ -246,7 +265,7 @@ export default function UsersPage() {
               <button
                 disabled={page === meta.totalPages}
                 onClick={() => setPage(p => Math.min(meta.totalPages, p + 1))}
-                className="h-7 w-7 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-white disabled:opacity-20 transition-all active:scale-95"
+                className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground ring-1 ring-black/[0.06] transition-all hover:bg-card disabled:opacity-20 active:scale-95"
               >
                 <IconChevronRight size={14} />
               </button>
@@ -256,10 +275,15 @@ export default function UsersPage() {
       </div>
 
       {/* Edit User Modal */}
-      <Dialog.Root open={isEditOpen} onOpenChange={setIsEditOpen}>
+      <Dialog.Root
+        open={isEditOpen}
+        onOpenChange={(open) => {
+          if (!open) closeEditDialog();
+        }}
+      >
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 z-50 bg-black/20 backdrop-blur-[1px] animate-in fade-in duration-200" />
-          <Dialog.Content className="fixed left-[50%] top-[45%] z-50 w-full max-w-sm translate-x-[-50%] translate-y-[-50%] overflow-hidden rounded-2xl bg-card p-6 shadow-2xl animate-in zoom-in-95 fade-in duration-200 outline-none border border-border/50">
+          <Dialog.Content className="fixed left-[50%] top-[45%] z-50 w-full max-w-sm translate-x-[-50%] translate-y-[-50%] overflow-hidden rounded-2xl border-0 bg-card p-6 shadow-2xl outline-none ring-1 ring-black/[0.08] animate-in zoom-in-95 fade-in duration-200">
             <div className="flex items-center justify-between mb-5">
               <Dialog.Title className="text-sm font-bold flex items-center gap-2">
                 <div className="h-7 w-7 rounded-lg bg-[#B5651D]/10 flex items-center justify-center text-[#B5651D]">
@@ -273,8 +297,8 @@ export default function UsersPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-muted/20 border border-border/30 mb-2">
-                <div className="h-12 w-12 rounded-full bg-white border border-border flex items-center justify-center font-bold text-[#B5651D] text-lg uppercase shadow-sm">
+              <div className="mb-2 flex flex-col items-center gap-2 rounded-xl bg-muted/30 p-4 shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.04]">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-card font-bold text-[#B5651D] text-lg uppercase shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]">
                    {selectedUser?.firstName[0]}{selectedUser?.lastName[0]}
                 </div>
                 <div className="text-center">
@@ -285,26 +309,31 @@ export default function UsersPage() {
 
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-muted-foreground/50 ml-1">Access Status</label>
-                <select 
-                    value={editData.status} 
-                    onChange={e => setEditData(p => ({ ...p, status: e.target.value as any }))}
-                    className="h-9 w-full rounded-xl border border-border bg-card px-3 text-[11px] font-bold focus:border-[#B5651D] focus:ring-0 outline-none"
+                <NativeSelect
+                  value={editData.status}
+                  onChange={(e) =>
+                    setEditData((p) => ({
+                      ...p,
+                      status: e.target.value as IUser["status"],
+                    }))
+                  }
+                  className="text-[11px] font-bold"
                 >
-                    <option value="active">Active Entry</option>
-                    <option value="inactive">Suspended / Deactivated</option>
-                </select>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </NativeSelect>
               </div>
 
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-muted-foreground/50 ml-1">Platform Role</label>
-                <select 
-                    value={editData.userRole} 
-                    onChange={e => setEditData(p => ({ ...p, userRole: e.target.value }))}
-                    className="h-9 w-full rounded-xl border border-border bg-card px-3 text-[11px] font-bold focus:border-[#B5651D] focus:ring-0 outline-none"
+                <NativeSelect
+                  value={editData.userRole}
+                  onChange={(e) => setEditData((p) => ({ ...p, userRole: e.target.value }))}
+                  className="text-[11px] font-bold"
                 >
-                    <option value="user">Standard User Pool</option>
-                    <option value="admin">Platform Administrator</option>
-                </select>
+                  <option value="user">User</option>
+                  <option value="admin">Administrator</option>
+                </NativeSelect>
               </div>
 
               <div className="pt-2">

@@ -53,8 +53,8 @@ export default function LoginPage() {
   }
 
   const inputBase = twMerge(
-    "w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 transition-all duration-200",
-    "placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-[#5A2A13]/5 focus:border-[#5A2A13]",
+    "w-full rounded-xl border-0 bg-muted/70 px-4 py-3 text-foreground shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] transition-all duration-200",
+    "placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-[#B5651D]/25",
     "disabled:pointer-events-none disabled:opacity-50"
   );
   const labelBase =
@@ -63,10 +63,10 @@ export default function LoginPage() {
     "mt-2 text-xs font-bold text-rose-500 animate-in fade-in duration-200";
 
   return (
-    <div className="flex h-screen w-full flex-col items-center justify-center overflow-hidden bg-slate-50 px-6">
+    <div className="flex h-screen w-full flex-col items-center justify-center overflow-hidden bg-muted/50 px-6">
       <div className="relative z-10 w-full max-w-[420px] animate-in fade-in zoom-in-95 duration-700">
-        <div className="overflow-hidden rounded-[2.5rem] bg-white p-1.5 shadow-[0_48px_80px_-16px_rgba(15,23,42,0.1)] ring-1 ring-slate-200/50">
-          <div className="rounded-[2.2rem] bg-white px-8 py-10 sm:px-10">
+        <div className="overflow-hidden rounded-[2.5rem] bg-card p-1.5 shadow-[0_48px_80px_-16px_rgba(15,23,42,0.08)] ring-1 ring-black/[0.06]">
+          <div className="rounded-[2.2rem] bg-card px-8 py-10 sm:px-10">
 
             {/* Inner Logo & Single Small Headline */}
             <div className="mb-10 flex flex-col items-center">
@@ -80,10 +80,10 @@ export default function LoginPage() {
                   priority
                 />
               </div>
-              <h1 className="text-2xl font-black tracking-tight text-slate-900">
+              <h1 className="text-2xl font-black tracking-tight text-foreground">
                 BOSS Admin Panel
               </h1>
-              <p className="mt-1 text-[11px] font-bold uppercase tracking-widest text-slate-400">
+              <p className="mt-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground/60">
                 Manage your administrative workspace
               </p>
             </div>
@@ -160,7 +160,8 @@ export default function LoginPage() {
                 type="submit"
                 disabled={loading}
                 className={twMerge(
-                  "relative w-full overflow-hidden rounded-2xl bg-[#5A2A13] px-6 py-4 font-bold text-white shadow-xl shadow-[#5A2A13]/20 transition-all duration-300 hover:brightness-110 active:scale-[0.98]",
+                  "relative w-full overflow-hidden rounded-xl px-6 py-3.5 text-[13px] font-bold text-white shadow-lg shadow-[#B5651D]/15 transition-all duration-200 hover:opacity-90 active:scale-[0.98]",
+                  "bg-[linear-gradient(268.96deg,#B5651D_0.19%,#FE9738_99.72%)]",
                   "disabled:pointer-events-none disabled:opacity-60"
                 )}
               >

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { IconChevronDown, IconLogout, IconUser } from "@tabler/icons-react";
+import { IconLogout, IconUser } from "@tabler/icons-react";
 import { sidebarNav, isNavSection } from "@/lib/sidebar-nav";
 import React, { useState, useEffect } from "react";
 import { twMerge } from "tailwind-merge";
@@ -29,7 +29,7 @@ export function DashboardSidebar() {
   };
 
   return (
-    <aside className="flex h-full w-full flex-col bg-white border-r border-border/80 shadow-[10px_0_30px_-15px_rgba(0,0,0,0.03)] z-50">
+    <aside className="z-50 flex h-full w-full flex-col bg-sidebar text-sidebar-foreground shadow-[4px_0_24px_-12px_rgba(0,0,0,0.06)]">
       <div className="flex shrink-0 items-center justify-center px-6 py-10">
         <Link
           href="/dashboard"
@@ -56,15 +56,15 @@ export function DashboardSidebar() {
                   className={twMerge(
                     "group flex items-center gap-3 rounded-[16px] px-4 py-3.5 text-[12px] font-black uppercase tracking-wider transition-all duration-300",
                     isActive
-                      ? "bg-[linear-gradient(268.96deg,#B5651D_0.19%,#FE9738_99.72%)] text-white shadow-lg shadow-[#B5651D]/20"
-                      : "text-muted-foreground/60 hover:bg-muted/10 hover:text-foreground"
+                      ? "bg-[linear-gradient(268.96deg,#B5651D_0.19%,#FE9738_99.72%)] text-white shadow-md shadow-[#B5651D]/15"
+                      : "text-sidebar-foreground/55 hover:bg-sidebar-accent hover:text-sidebar-foreground"
                   )}
                 >
                   {Icon && (
                     <Icon
                       className={twMerge(
                         "h-4 w-4 shrink-0 transition-transform group-hover:scale-110",
-                        isActive ? "text-white" : "text-muted-foreground/30 group-hover:text-foreground"
+                        isActive ? "text-white" : "text-sidebar-foreground/35 group-hover:text-sidebar-foreground"
                       )}
                     />
                   )}
@@ -77,22 +77,22 @@ export function DashboardSidebar() {
         </div>
       </nav>
 
-      <div className="mt-auto p-5 border-t border-border/50 bg-muted/[0.02]">
-        <div className="flex items-center gap-3 rounded-2xl bg-white p-3 border border-border shadow-sm">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted/10 text-primary border border-border/50">
+      <div className="mt-auto border-t border-sidebar-border/50 bg-sidebar-accent/20 p-5">
+        <div className="flex items-center gap-3 rounded-2xl bg-card/70 p-3 shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.04]">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted/50 text-primary ring-1 ring-black/[0.05]">
             <IconUser className="h-5 w-5" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[11px] font-black text-foreground uppercase tracking-tight">
+            <p className="truncate text-[11px] font-black uppercase tracking-tight text-sidebar-foreground">
               {authUser?.name || "Admin User"}
             </p>
-            <p className="truncate text-[9px] font-bold text-muted-foreground uppercase opacity-40">
+            <p className="truncate text-[9px] font-bold uppercase text-sidebar-foreground/45">
               {authUser?.email || "Super Admin"}
             </p>
           </div>
           <button
             onClick={handleLogout}
-            className="h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-red-50 hover:text-red-500 transition-all border border-transparent hover:border-red-100 shrink-0"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sidebar-foreground/50 transition-all hover:bg-red-500/10 hover:text-red-600"
             title={t("common.logOut")}
           >
             <IconLogout className="h-4 w-4" />

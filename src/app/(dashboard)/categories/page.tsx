@@ -21,6 +21,7 @@ import {
 import { twMerge } from "tailwind-merge";
 import * as Dialog from "@radix-ui/react-dialog";
 import { categoryService, type Category } from "@/lib/services/categoryService";
+import { getErrorMessage } from "@/lib/errorMessage";
 import { toast } from "react-toastify";
 
 export default function CategoriesPage() {
@@ -53,8 +54,8 @@ export default function CategoriesPage() {
       toast.success("Category created successfully");
       closeAndReset();
     },
-    onError: (error: any) => {
-      toast.error(error.message || "Failed to create category");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Failed to create category"));
     },
   });
 
@@ -65,8 +66,8 @@ export default function CategoriesPage() {
       toast.success("Category updated successfully");
       closeAndReset();
     },
-    onError: (error: any) => {
-      toast.error(error.message || "Failed to update category");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Failed to update category"));
     },
   });
 
@@ -78,8 +79,8 @@ export default function CategoriesPage() {
       setIsDeleteOpen(false);
       setSelectedCategory(null);
     },
-    onError: (error: any) => {
-      toast.error(error.message || "Failed to delete category");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Failed to delete category"));
     },
   });
 
@@ -161,19 +162,21 @@ export default function CategoriesPage() {
                 setSearchTerm(e.target.value);
                 setPage(1);
               }}
-              className="h-9 w-full rounded-xl border border-border bg-card/40 pl-9 pr-3 text-xs font-semibold focus:border-border focus:ring-0 outline-none"
+              className="h-9 w-full rounded-xl border-0 bg-muted/60 pl-9 pr-3 text-xs font-semibold text-foreground shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] outline-none focus:ring-2 focus:ring-[#B5651D]/20"
             />
           </div>
 
           <button
+            type="button"
             onClick={() => queryClient.invalidateQueries({ queryKey: ["categories"] })}
-            className="h-9 w-9 flex items-center justify-center rounded-xl border border-border bg-card text-muted-foreground hover:bg-muted transition-all active:scale-95 shadow-none"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border-0 bg-muted/60 text-muted-foreground shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05] transition-all hover:bg-muted/80 active:scale-95"
             title="Refresh"
           >
             <IconReload className={twMerge("h-3.5 w-3.5", (isLoading || isRefetching) && "animate-spin")} />
           </button>
 
           <button
+            type="button"
             onClick={() => setIsAddOpen(true)}
             className="h-9 px-4 rounded-xl bg-[linear-gradient(268.96deg,#B5651D_0.19%,#FE9738_99.72%)] text-white text-[12px] font-bold flex items-center gap-2 shadow-lg shadow-[#B5651D]/10 hover:opacity-90 active:scale-95 transition-all outline-none border-none"
           >
@@ -184,7 +187,7 @@ export default function CategoriesPage() {
       </div>
 
       {/* Main Table identical to subcategories */}
-      <div className="overflow-hidden rounded-2xl border border-border/50 bg-card shadow-sm">
+      <div className="overflow-hidden rounded-2xl bg-card shadow-sm ring-1 ring-black/[0.04]">
         {isLoading ? (
           <div className="flex h-64 flex-col items-center justify-center gap-3">
             <IconLoader2 className="h-6 w-6 animate-spin text-muted-foreground/20" />
@@ -199,13 +202,13 @@ export default function CategoriesPage() {
           <div className="overflow-x-auto min-h-[360px]">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-muted/5 border-b border-border/30">
+                <tr className="border-b border-black/[0.05] bg-muted/20">
                   <th className="px-8 py-4 text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">Category</th>
                   <th className="px-6 py-4 text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest text-center">Status</th>
                   <th className="px-8 py-4 text-right text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">Manage</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border/20">
+              <tbody className="divide-y divide-black/[0.04]">
                 {categories.map((category) => (
                   <tr key={category.id} className="group transition-colors hover:bg-muted/[0.15]">
                     <td className="px-8 py-3.5">
@@ -260,7 +263,7 @@ export default function CategoriesPage() {
 
         {/* Identical Floating Pagination Bar */}
         {meta && meta.totalPages > 1 && (
-          <div className="px-8 py-3 border-t border-border/20 flex items-center justify-between bg-muted/[0.04]">
+          <div className="flex items-center justify-between border-t border-black/[0.06] bg-muted/15 px-8 py-3">
             <div className="text-[10px] font-bold text-muted-foreground/30">
               Showing {((page - 1) * limit) + 1} - {Math.min(page * limit, meta.total)} of {meta.total} Categories
             </div>
@@ -268,7 +271,7 @@ export default function CategoriesPage() {
               <button
                 disabled={page === 1}
                 onClick={() => setPage(p => Math.max(1, p - 1))}
-                className="h-7 w-7 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-white disabled:opacity-20 transition-all active:scale-95"
+                className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground ring-1 ring-black/[0.06] transition-all hover:bg-card disabled:opacity-20 active:scale-95"
               >
                 <IconChevronLeft size={14} />
               </button>
@@ -279,10 +282,10 @@ export default function CategoriesPage() {
                     key={p}
                     onClick={() => setPage(p)}
                     className={twMerge(
-                      "h-7 min-w-[28px] px-1.5 rounded-lg text-[10px] font-bold transition-all",
+                      "h-7 min-w-[28px] rounded-lg px-1.5 text-[10px] font-bold transition-all",
                       page === p
                         ? "bg-[linear-gradient(268.96deg,#B5651D_0.19%,#FE9738_99.72%)] text-white shadow-md shadow-[#B5651D]/10"
-                        : "text-muted-foreground hover:bg-white hover:text-[#B5651D]"
+                        : "text-muted-foreground ring-1 ring-transparent hover:bg-card hover:text-[#B5651D] hover:ring-black/[0.06]"
                     )}
                   >
                     {p}
@@ -293,7 +296,7 @@ export default function CategoriesPage() {
               <button
                 disabled={page === meta.totalPages}
                 onClick={() => setPage(p => Math.min(meta.totalPages, p + 1))}
-                className="h-7 w-7 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-white disabled:opacity-20 transition-all active:scale-95"
+                className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground ring-1 ring-black/[0.06] transition-all hover:bg-card disabled:opacity-20 active:scale-95"
               >
                 <IconChevronRight size={14} />
               </button>
@@ -306,7 +309,7 @@ export default function CategoriesPage() {
       <Dialog.Root open={isAddOpen} onOpenChange={(open) => !open && closeAndReset()}>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 z-50 bg-black/20 backdrop-blur-[1px] animate-in fade-in duration-200" />
-          <Dialog.Content className="fixed left-[50%] top-[45%] z-50 w-full max-w-sm translate-x-[-50%] translate-y-[-50%] overflow-hidden rounded-2xl bg-card p-6 shadow-2xl animate-in zoom-in-95 fade-in duration-200 outline-none border border-border/50">
+          <Dialog.Content className="fixed left-[50%] top-[45%] z-50 w-full max-w-sm translate-x-[-50%] translate-y-[-50%] overflow-hidden rounded-2xl border-0 bg-card p-6 shadow-2xl outline-none ring-1 ring-black/[0.08] animate-in zoom-in-95 fade-in duration-200">
             <div className="flex items-center justify-between mb-5">
               <Dialog.Title className="text-sm font-bold flex items-center gap-2">
                 <div className="h-7 w-7 rounded-lg bg-[#B5651D]/10 flex items-center justify-center text-[#B5651D]">
@@ -320,8 +323,8 @@ export default function CategoriesPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="flex flex-col gap-2 p-3 rounded-xl bg-muted/20 border border-border/30">
-                <div className="h-14 w-14 rounded-lg border border-border bg-card flex items-center justify-center relative overflow-hidden group shrink-0">
+              <div className="flex flex-col gap-2 rounded-xl bg-muted/30 p-3 shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.04]">
+                <div className="group relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-card ring-1 ring-black/[0.06]">
                   {previewUrl ? (
                     <img src={previewUrl} alt="Preview" className="h-full w-full object-cover" />
                   ) : (
@@ -343,7 +346,7 @@ export default function CategoriesPage() {
                   placeholder="Enter category name..."
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  className="h-9 w-full rounded-xl border border-border bg-muted/10 px-3 text-[11px] font-bold focus:border-[#B5651D] focus:ring-0 outline-none"
+                  className="h-9 w-full rounded-xl border-0 bg-muted/60 px-3 text-[11px] font-bold text-foreground shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] outline-none focus:ring-2 focus:ring-[#B5651D]/20"
                 />
               </div>
 
@@ -353,23 +356,23 @@ export default function CategoriesPage() {
                   placeholder="Tell us about this category..."
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  className="min-h-[80px] w-full rounded-xl border border-border bg-muted/10 p-3 text-[11px] font-medium focus:border-[#B5651D] focus:ring-0 outline-none"
+                  className="min-h-[80px] w-full resize-none rounded-xl border-0 bg-muted/60 p-3 text-[11px] font-medium text-foreground shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] outline-none focus:ring-2 focus:ring-[#B5651D]/20"
                 />
               </div>
 
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-muted-foreground/50 ml-1">Status</label>
                 <div className="grid grid-cols-2 gap-2">
-                  {["active", "inactive"].map((s) => (
+                  {(["active", "inactive"] as const).map((s) => (
                     <button
                       key={s}
                       type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, status: s as any }))}
+                      onClick={() => setFormData((prev) => ({ ...prev, status: s }))}
                       className={twMerge(
-                        "h-9 rounded-xl border text-[10px] font-bold transition-all capitalize",
+                        "h-9 rounded-xl text-[10px] font-bold capitalize ring-1 ring-inset transition-all",
                         formData.status === s
-                          ? "bg-[#B5651D]/10 border-[#B5651D] text-[#B5651D]"
-                          : "border-border/60 text-muted-foreground hover:bg-muted"
+                          ? "bg-[#B5651D]/12 text-[#B5651D] ring-[#B5651D]/35"
+                          : "text-muted-foreground ring-black/[0.06] hover:bg-muted/50"
                       )}
                     >
                       {s}
@@ -403,7 +406,7 @@ export default function CategoriesPage() {
       <Dialog.Root open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 z-50 bg-black/10 backdrop-blur-[1px] animate-in fade-in duration-150" />
-          <Dialog.Content className="fixed left-[50%] top-[45%] z-50 w-full max-w-[280px] translate-x-[-50%] translate-y-[-50%] rounded-2xl bg-card p-6 shadow-2xl border border-border/50">
+          <Dialog.Content className="fixed left-[50%] top-[45%] z-50 w-full max-w-[280px] translate-x-[-50%] translate-y-[-50%] rounded-2xl border-0 bg-card p-6 shadow-2xl ring-1 ring-black/[0.08]">
             <div className="flex flex-col items-center text-center space-y-3">
               <div className="h-10 w-10 rounded-full bg-red-50 text-red-500 flex items-center justify-center">
                 <IconAlertCircle size={20} />
@@ -414,7 +417,7 @@ export default function CategoriesPage() {
               </Dialog.Description>
 
               <div className="flex gap-2 w-full pt-2">
-                <Dialog.Close className="flex-1 h-8 rounded-xl border border-border text-[10px] font-bold text-muted-foreground hover:bg-muted transition-all">
+                <Dialog.Close className="h-8 flex-1 rounded-xl bg-muted/50 text-[10px] font-bold text-muted-foreground ring-1 ring-black/[0.06] transition-all hover:bg-muted/80">
                   Cancel
                 </Dialog.Close>
                 <button

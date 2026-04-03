@@ -2,16 +2,17 @@
 @import "tw-animate-css";
 
 :root {
-  --background: hsl(0, 0%, 100%);
-  --foreground: hsl(30, 10%, 10%);
-  --muted: hsl(220, 13%, 96%);
-  --muted-foreground: hsl(220, 10%, 28%);
-  --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(30, 10%, 10%);
-  --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(30, 10%, 10%);
-  --border: hsl(220, 13%, 91%);
-  --input: hsl(220, 13%, 91%);
+  /* Dull workspace: soft gray canvas, cards slightly lifted, borders very subtle */
+  --background: hsl(220, 14%, 95%);
+  --foreground: hsl(220, 12%, 12%);
+  --muted: hsl(220, 12%, 91%);
+  --muted-foreground: hsl(220, 9%, 38%);
+  --popover: hsl(220, 14%, 98%);
+  --popover-foreground: hsl(220, 12%, 12%);
+  --card: hsl(220, 14%, 98%);
+  --card-foreground: hsl(220, 12%, 12%);
+  --border: hsl(220, 10%, 90%);
+  --input: hsl(220, 12%, 93%);
   --primary: hsl(28, 72%, 41%); /* Derived from #B5651D */
   --primary-foreground: hsl(0, 0%, 100%);
   --secondary: hsl(30, 98%, 61%); /* Derived from #FE9738 */
@@ -23,16 +24,16 @@
   --ring: hsl(28, 72%, 41%);
   --radius: 0.75rem;
 
-  /* Sidebar (Brand Gradient) */
-  --sidebar: transparent;
-  --sidebar-foreground: hsl(0, 0%, 100%);
-  --sidebar-background: linear-gradient(268.96deg, #B5651D 0.19%, #FE9738 99.72%);
-  --sidebar-border: hsla(0, 0%, 100%, 0.1);
-  --sidebar-primary: hsl(0, 0%, 100%);
-  --sidebar-primary-foreground: hsl(28, 72%, 41%);
-  --sidebar-accent: hsla(0, 0%, 100%, 0.1);
-  --sidebar-accent-foreground: hsl(0, 0%, 100%);
-  --sidebar-ring: hsl(0, 0%, 100%);
+  /* Sidebar: muted panel (dull), nav active still uses app gradient in components */
+  --sidebar: hsl(220, 14%, 93%);
+  --sidebar-foreground: hsl(220, 10%, 22%);
+  --sidebar-background: hsl(220, 14%, 93%);
+  --sidebar-border: hsl(220, 10%, 88%);
+  --sidebar-primary: hsl(28, 72%, 41%);
+  --sidebar-primary-foreground: hsl(0, 0%, 100%);
+  --sidebar-accent: hsl(220, 12%, 87%);
+  --sidebar-accent-foreground: hsl(220, 10%, 18%);
+  --sidebar-ring: hsl(28, 72%, 41%);
 
   /* Charts */
   --chart-1: hsl(20, 66%, 21%);
@@ -145,11 +146,11 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-ring/40;
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
   }
 }
 

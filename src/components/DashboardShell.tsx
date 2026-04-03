@@ -52,17 +52,17 @@ export function DashboardShell({
   }, [pathname]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-screen overflow-hidden bg-muted/30">
       <aside
         className={`shrink-0 overflow-hidden transition-[width] duration-500 ease-out ${sidebarOpen ? "w-64" : "w-0"
           }`}
       >
-        <div className="flex h-full w-64 flex-col border-r border-sidebar-border bg-sidebar">
+        <div className="flex h-full w-64 flex-col border-r border-sidebar-border/80 bg-sidebar">
           <DashboardSidebar />
         </div>
       </aside>
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center gap-3 border-b border-border bg-card/80 px-4 shadow-sm sm:px-6 backdrop-blur-md">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-background/80">
+        <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center gap-3 border-b border-transparent bg-card/85 px-4 shadow-[0_1px_0_rgba(0,0,0,0.04)] sm:px-6 backdrop-blur-md">
           <button
             type="button"
             onClick={() => setSidebarOpen((o: boolean) => !o)}
@@ -94,7 +94,7 @@ export function DashboardShell({
               </DropdownMenu.Trigger>
               <DropdownMenu.Portal>
                 <DropdownMenu.Content
-                  className="min-w-[180px] rounded-xl border border-border bg-background p-1.5 shadow-xl animate-in zoom-in-95 fade-in duration-200"
+                  className="min-w-[180px] rounded-xl border-0 bg-card/95 p-1.5 shadow-lg shadow-black/10 ring-1 ring-black/[0.06] animate-in zoom-in-95 fade-in duration-200"
                   sideOffset={6}
                   align="end"
                 >
@@ -111,7 +111,7 @@ export function DashboardShell({
                       </div>
                     )}
                   </div>
-                  <DropdownMenu.Separator className="my-1.5 h-px bg-border/50" />
+                  <DropdownMenu.Separator className="my-1.5 h-px bg-black/[0.06]" />
                   <DropdownMenu.Item
                     className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-[13px] font-medium text-muted-foreground outline-none hover:bg-muted hover:text-foreground focus:bg-muted focus:text-foreground"
                     onSelect={() => {
@@ -139,7 +139,7 @@ export function DashboardShell({
             {children}
           </div>
         </main>
-        <footer className="shrink-0 border-t border-border bg-card px-4 py-2 sm:px-6" role="contentinfo">
+        <footer className="shrink-0 border-t border-transparent bg-card/80 px-4 py-2 shadow-[0_-1px_0_rgba(0,0,0,0.04)] sm:px-6" role="contentinfo">
           <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 text-[10px] font-medium text-muted-foreground/40 text-center">
             <span className="w-full text-center">© {new Date().getFullYear()} {t("app.name")}</span>
           </div>
