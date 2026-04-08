@@ -47,6 +47,7 @@ export const messages: Record<Locale, Record<string, string>> = {
     "nav.subcategories": "Subcategories",
     "nav.products": "Products",
     "nav.users": "Users",
+    "nav.settings": "App Settings",
 
 
     "header.userMenu": "User menu",

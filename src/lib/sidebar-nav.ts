@@ -4,6 +4,7 @@ import {
   IconHierarchy,
   IconPackage,
   IconUsers,
+  IconSettings,
 } from "@tabler/icons-react";
 
 export interface SidebarNavItem {
@@ -34,4 +35,5 @@ export const sidebarNav: SidebarNavEntry[] = [
   { titleKey: "nav.subcategories", href: "/subcategories", icon: IconHierarchy },
   { titleKey: "nav.products", href: "/products", icon: IconPackage },
   { titleKey: "nav.users", href: "/users", icon: IconUsers },
+  { titleKey: "nav.settings", href: "/settings", icon: IconSettings },
 ];
