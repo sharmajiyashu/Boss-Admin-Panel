@@ -34,7 +34,7 @@ export interface DashboardResponse {
 }
 
 export const dashboardService = {
-  getStats: async () => {
-    return await get<DashboardResponse>("/dashboard/stats");
+  getStats: async (): Promise<DashboardStats> => {
+    return await get<DashboardStats>("/dashboard/stats");
   },
 };

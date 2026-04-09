@@ -20,7 +20,7 @@ import {
 } from "@tabler/icons-react";
 import { twMerge } from "tailwind-merge";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { dashboardService, DashboardResponse } from "@/lib/services/dashboardService";
+import { dashboardService, DashboardStats } from "@/lib/services/dashboardService";
 import Link from "next/link";
 import {
   BarChart,
@@ -37,12 +37,10 @@ export default function DashboardPage() {
   const { t } = useLanguage();
   const queryClient = useQueryClient();
 
-  const { data: response, isLoading } = useQuery<DashboardResponse>({
+  const { data: stats, isLoading } = useQuery<DashboardStats>({
     queryKey: ["dashboard-stats"],
     queryFn: dashboardService.getStats,
   });
-
-  const stats = response?.data;
 
   const statCards = [
     {
