@@ -12,6 +12,7 @@ import {
 import { usePathname, useRouter } from "next/navigation";
 import { clearToken, getAuthUser, type AuthUser } from "@/lib/api";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { twMerge } from "tailwind-merge";
 
 /** Display name for auth user (VendorUser from login has name, email). */
 function displayName(user: AuthUser | null): string {
@@ -42,6 +43,21 @@ export function DashboardShell({
   const mainRef = React.useRef<HTMLElement>(null);
   const roleLabel = displayRole(authUser);
 
+  // Responsive sidebar handling
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setSidebarOpen(false);
+      } else {
+        setSidebarOpen(true);
+      }
+    };
+
+    handleResize(); // Initialize
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   useEffect(() => {
     const user = getAuthUser();
     queueMicrotask(() => setAuthUserState(user));
@@ -49,18 +65,33 @@ export function DashboardShell({
 
   useEffect(() => {
     mainRef.current?.scrollTo({ top: 0 });
+    // Close sidebar on route change on mobile
+    if (window.innerWidth < 1024) {
+      setSidebarOpen(false);
+    }
   }, [pathname]);
 
   return (
     <div className="flex h-screen overflow-hidden bg-muted/30">
+      {/* Mobile Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 z-[60] bg-black/20 backdrop-blur-sm lg:hidden animate-in fade-in duration-300" 
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       <aside
-        className={`shrink-0 overflow-hidden transition-[width] duration-500 ease-out ${sidebarOpen ? "w-64" : "w-0"
-          }`}
+        className={twMerge(
+          "fixed inset-y-0 left-0 z-[70] transition-all duration-300 ease-in-out lg:relative lg:z-0 lg:block",
+          sidebarOpen ? "translate-x-0 w-64" : "-translate-x-full w-0 lg:w-0"
+        )}
       >
-        <div className="flex h-full w-64 flex-col border-r border-sidebar-border/80 bg-sidebar">
+        <div className="flex h-full w-64 flex-col border-r border-sidebar-border/80 bg-sidebar shadow-xl lg:shadow-none">
           <DashboardSidebar />
         </div>
       </aside>
+
       <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-background/80">
         <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center gap-3 border-b border-transparent bg-card/85 px-4 shadow-[0_1px_0_rgba(0,0,0,0.04)] sm:px-6 backdrop-blur-md">
           <button

@@ -1,4 +1,4 @@
-import { get, put, deleteRequest } from "@/lib/api";
+import { get, put, postFormData } from "@/lib/api";
 
 export interface IUser {
   id: string;
@@ -14,7 +14,14 @@ export interface IUser {
     state?: string;
     address?: string;
   };
+  profileImage?: {
+    id: string;
+    _id?: string;
+    url: string;
+  };
   createdAt: string;
+  isVerified?: boolean;
+  isPremium?: boolean;
 }
 
 export interface PaginatedUserResponse {
@@ -47,5 +54,11 @@ export const userService = {
 
   updateUser: async (id: string, data: Partial<IUser>): Promise<IUser> => {
     return put<IUser>(`/users/${id}`, data);
+  },
+
+  uploadUserProfileImage: async (file: File): Promise<{ mediaId: string; url: string }> => {
+    const formData = new FormData();
+    formData.append("image", file);
+    return postFormData<{ mediaId: string; url: string }>("/users/upload", formData);
   },
 };

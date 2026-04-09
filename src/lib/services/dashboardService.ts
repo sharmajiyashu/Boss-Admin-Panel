@@ -1,44 +1,40 @@
 import { get } from "../api";
 
 export interface DashboardStats {
-  totalUsers: number;
-  totalBookings: number;
-  todayBookings: number;
-  totalTemples: number;
-  totalTours: number;
-  totalRevenue: number;
-  totalWalletBalance: number;
-  statusBreakdown: {
-    upcoming: number;
-    completed: number;
-    cancelled: number;
+  users: {
+    total: number;
   };
-}
-
-export interface RecentUpcomingBooking {
-  id: number;
-  bookingId: string;
-  userId: number;
-  tourId: number;
-  status: string;
-  createdAt: string;
-  user: {
-    name: string;
-    mobile: string;
-    email: string;
+  products: {
+    pending: number;
+    approved: number;
+    rejected: number;
+    sold: number;
+    inactive: number;
+    total: number;
   };
-  tour: {
-    titleEn: string;
+  categories: {
+    total: number;
   };
+  subcategories: {
+    total: number;
+  };
+  revenue: {
+    today: number;
+    analysis: Array<{
+      date: string;
+      revenue: number;
+    }>;
+  };
+  recentProducts: Array<any>;
 }
 
 export interface DashboardResponse {
-  stats: DashboardStats;
-  recentUpcomingBookings: RecentUpcomingBooking[];
+  success: boolean;
+  data: DashboardStats;
 }
 
 export const dashboardService = {
   getStats: async () => {
-    return await get<DashboardResponse>("/dashboard");
+    return await get<DashboardResponse>("/dashboard/stats");
   },
 };

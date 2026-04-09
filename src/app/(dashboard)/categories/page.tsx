@@ -186,119 +186,187 @@ export default function CategoriesPage() {
         </div>
       </div>
 
-      {/* Main Table identical to subcategories */}
-      <div className="overflow-hidden rounded-2xl bg-card shadow-sm ring-1 ring-black/[0.04]">
+      {/* Main Content Area */}
+      <div className="min-h-[400px]">
         {isLoading ? (
-          <div className="flex h-64 flex-col items-center justify-center gap-3">
-            <IconLoader2 className="h-6 w-6 animate-spin text-muted-foreground/20" />
-            <p className="text-[10px] font-bold text-muted-foreground/30">Loading categories...</p>
+          <div className="flex h-64 flex-col items-center justify-center gap-3 rounded-2xl bg-card shadow-sm ring-1 ring-black/[0.04]">
+            <IconLoader2 className="h-8 w-8 animate-spin text-[#B5651D]/20" />
+            <p className="text-[11px] font-bold text-muted-foreground/30">Loading categories...</p>
           </div>
         ) : categories.length === 0 ? (
-          <div className="flex h-64 flex-col items-center justify-center gap-3 p-8 text-center">
+          <div className="flex h-64 flex-col items-center justify-center gap-3 p-8 text-center rounded-2xl bg-card shadow-sm ring-1 ring-black/[0.04]">
             <IconCategory size={32} className="text-muted-foreground/10" strokeWidth={1.5} />
             <p className="text-xs font-bold text-muted-foreground/50">No categories found</p>
           </div>
         ) : (
-          <div className="overflow-x-auto min-h-[360px]">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-black/[0.05] bg-muted/20">
-                  <th className="px-8 py-4 text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">Category</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest text-center">Status</th>
-                  <th className="px-8 py-4 text-right text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">Manage</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-black/[0.04]">
-                {categories.map((category) => (
-                  <tr key={category.id} className="group transition-colors hover:bg-muted/[0.15]">
-                    <td className="px-8 py-3.5">
-                      <div className="flex items-center gap-4">
-                        {/* Identical ID Box from subcategories */}
-                        <div className="h-10 w-10 shrink-0 flex items-center justify-center rounded-xl bg-muted text-muted-foreground group-hover:bg-[#B5651D]/5 group-hover:text-[#B5651D] transition-colors font-bold text-[10px] border border-border/30 overflow-hidden relative">
-                          {category.media?.url ? (
-                            <img src={category.media.url} alt={category.name} className="h-full w-full object-cover" />
-                          ) : (
-                            <span className="opacity-30">ID-{String(category._id || category.id).slice(-2).toUpperCase()}</span>
-                          )}
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-[13px] font-bold text-foreground leading-tight">{category.name}</span>
-                          <span className="text-[10px] font-medium text-muted-foreground/30 capitalize truncate max-w-[280px]">{category.description || "No description provided"}</span>
-                        </div>
+          <>
+            {/* Desktop Table View */}
+            <div className="hidden lg:block overflow-hidden rounded-2xl bg-card shadow-sm ring-1 ring-black/[0.04]">
+              <div className="overflow-x-auto min-h-[360px]">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-black/[0.05] bg-muted/20">
+                      <th className="px-8 py-4 text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">Category</th>
+                      <th className="px-6 py-4 text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest text-center">Status</th>
+                      <th className="px-8 py-4 text-right text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">Manage</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-black/[0.04]">
+                    {categories.map((category) => (
+                      <tr key={category.id || category._id} className="group transition-colors hover:bg-muted/[0.15]">
+                        <td className="px-8 py-3.5">
+                          <div className="flex items-center gap-4">
+                            <div className="h-10 w-10 shrink-0 flex items-center justify-center rounded-xl bg-muted text-muted-foreground group-hover:bg-[#B5651D]/5 group-hover:text-[#B5651D] transition-colors font-bold text-[10px] border border-border/30 overflow-hidden relative">
+                              {category.media?.url ? (
+                                <img src={category.media.url} alt={category.name} className="h-full w-full object-cover" />
+                              ) : (
+                                <span className="opacity-30">ID-{String(category._id || category.id).slice(-2).toUpperCase()}</span>
+                              )}
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-[13px] font-bold text-foreground leading-tight">{category.name}</span>
+                              <span className="text-[10px] font-medium text-muted-foreground/30 capitalize truncate max-w-[280px]">{category.description || "No description provided"}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-3.5 text-center">
+                          <span className={twMerge(
+                            "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-bold ring-1 ring-inset",
+                            category.status === "active" ? "bg-emerald-50 text-emerald-600 ring-emerald-500/10" : "bg-red-50 text-red-600 ring-red-500/10"
+                          )}>
+                            <div className={twMerge("h-1 w-1 rounded-full bg-current", category.status === "active" && "animate-pulse")} />
+                            {category.status === "active" ? "Active" : "Inactive"}
+                          </span>
+                        </td>
+                        <td className="px-8 py-3.5 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              onClick={() => handleEdit(category)}
+                              className="h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground/40 hover:bg-white hover:text-[#B5651D] border border-transparent hover:border-border transition-all active:scale-95 shadow-none hover:shadow-sm"
+                              title="Edit"
+                            >
+                              <IconEdit size={14} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteClick(category)}
+                              className="h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground/40 hover:bg-white hover:text-red-500 border border-transparent hover:border-border transition-all active:scale-95 shadow-none hover:shadow-sm"
+                              title="Delete"
+                            >
+                              <IconTrash size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Mobile/Tablet Grid View */}
+            <div className="lg:hidden grid grid-cols-1 md:grid-cols-2 gap-4">
+              {categories.map((category) => (
+                <div 
+                  key={category.id || category._id}
+                  className="bg-card rounded-2xl p-5 shadow-sm ring-1 ring-black/[0.04] space-y-4"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-12 w-12 rounded-xl bg-muted overflow-hidden border border-border/30 flex items-center justify-center">
+                        {category.media?.url ? (
+                          <img src={category.media.url} alt={category.name} className="h-full w-full object-cover" />
+                        ) : (
+                          <IconCategory size={20} className="text-muted-foreground/20" />
+                        )}
                       </div>
-                    </td>
-                    <td className="px-6 py-3.5 text-center">
-                      <span className={twMerge(
-                        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-bold ring-1 ring-inset",
-                        category.status === "active" ? "bg-emerald-50 text-emerald-600 ring-emerald-500/10" : "bg-red-50 text-red-600 ring-red-500/10"
-                      )}>
-                        <div className={twMerge("h-1 w-1 rounded-full bg-current", category.status === "active" && "animate-pulse")} />
-                        {category.status === "active" ? "Active" : "Inactive"}
-                      </span>
-                    </td>
-                    <td className="px-8 py-3.5 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <button
-                          onClick={() => handleEdit(category)}
-                          className="h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground/40 hover:bg-white hover:text-[#B5651D] border border-transparent hover:border-border transition-all active:scale-95 shadow-none hover:shadow-sm"
-                          title="Edit"
-                        >
-                          <IconEdit size={14} />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteClick(category)}
-                          className="h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground/40 hover:bg-white hover:text-red-500 border border-transparent hover:border-border transition-all active:scale-95 shadow-none hover:shadow-sm"
-                          title="Delete"
-                        >
-                          <IconTrash size={14} />
-                        </button>
+                      <div>
+                        <h3 className="text-sm font-bold text-foreground">{category.name}</h3>
+                        <p className="text-[10px] font-bold text-muted-foreground/40 uppercase truncate max-w-[150px]">
+                          ID-{String(category._id || category.id).slice(-6).toUpperCase()}
+                        </p>
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                    <span className={twMerge(
+                      "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[9px] font-bold ring-1 ring-inset uppercase",
+                      category.status === "active" ? "bg-emerald-50 text-emerald-600 ring-emerald-500/10" : "bg-red-50 text-red-600 ring-red-500/10"
+                    )}>
+                      {category.status}
+                    </span>
+                  </div>
+
+                  <p className="text-[11px] font-medium text-muted-foreground/60 leading-relaxed line-clamp-2">
+                    {category.description || "No description available for this category."}
+                  </p>
+
+                  <div className="flex gap-2 pt-2">
+                    <button
+                      onClick={() => handleEdit(category)}
+                      className="flex-1 h-9 rounded-xl bg-muted/50 text-[10px] font-bold text-foreground hover:bg-[#B5651D] hover:text-white transition-all flex items-center justify-center gap-2"
+                    >
+                      <IconEdit size={14} />
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteClick(category)}
+                      className="h-9 w-9 rounded-xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center"
+                    >
+                      <IconTrash size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
 
-        {/* Identical Floating Pagination Bar */}
+        {/* Premium Floating Pagination Bar */}
         {meta && meta.totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-black/[0.06] bg-muted/15 px-8 py-3">
-            <div className="text-[10px] font-bold text-muted-foreground/30">
-              Showing {((page - 1) * limit) + 1} - {Math.min(page * limit, meta.total)} of {meta.total} Categories
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-card/60 backdrop-blur-md shadow-[0_-1px_10px_rgba(0,0,0,0.02)] ring-1 ring-black/[0.04]">
+            <div className="text-[10px] font-extrabold text-muted-foreground/40 uppercase tracking-widest">
+              Records {((page - 1) * limit) + 1} — {Math.min(page * limit, meta.total)} <span className="mx-2 opacity-50">/</span> TOTAL {meta.total}
             </div>
+
             <div className="flex items-center gap-2">
               <button
                 disabled={page === 1}
                 onClick={() => setPage(p => Math.max(1, p - 1))}
-                className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground ring-1 ring-black/[0.06] transition-all hover:bg-card disabled:opacity-20 active:scale-95"
+                className="flex h-8 w-8 items-center justify-center rounded-xl bg-muted/50 text-muted-foreground ring-1 ring-black/[0.06] transition-all hover:bg-card disabled:opacity-20 active:scale-95"
               >
-                <IconChevronLeft size={14} />
+                <IconChevronLeft size={16} />
               </button>
 
-              <div className="flex items-center gap-1">
-                {Array.from({ length: meta.totalPages }, (_, i) => i + 1).map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => setPage(p)}
-                    className={twMerge(
-                      "h-7 min-w-[28px] rounded-lg px-1.5 text-[10px] font-bold transition-all",
-                      page === p
-                        ? "bg-[linear-gradient(268.96deg,#B5651D_0.19%,#FE9738_99.72%)] text-white shadow-md shadow-[#B5651D]/10"
-                        : "text-muted-foreground ring-1 ring-transparent hover:bg-card hover:text-[#B5651D] hover:ring-black/[0.06]"
-                    )}
-                  >
-                    {p}
-                  </button>
-                ))}
+              <div className="flex items-center gap-1.5">
+                {Array.from({ length: meta.totalPages }, (_, i) => i + 1)
+                  .filter(p => {
+                    if (meta.totalPages <= 5) return true;
+                    return Math.abs(p - page) <= 2 || p === 1 || p === meta.totalPages;
+                  })
+                  .map((p, idx, arr) => (
+                    <React.Fragment key={p}>
+                      {idx > 0 && arr[idx - 1] !== p - 1 && (
+                        <span className="text-muted-foreground/30 px-1">...</span>
+                      )}
+                      <button
+                        onClick={() => setPage(p)}
+                        className={twMerge(
+                          "h-8 min-w-[32px] rounded-xl px-2 text-[11px] font-bold transition-all",
+                          page === p
+                            ? "bg-[linear-gradient(268.96deg,#B5651D_0.19%,#FE9738_99.72%)] text-white shadow-lg shadow-[#B5651D]/20 animate-in zoom-in-90"
+                            : "text-muted-foreground ring-1 ring-transparent hover:bg-card hover:text-[#B5651D] hover:ring-black/[0.06]"
+                        )}
+                      >
+                        {p}
+                      </button>
+                    </React.Fragment>
+                  ))}
               </div>
 
               <button
                 disabled={page === meta.totalPages}
                 onClick={() => setPage(p => Math.min(meta.totalPages, p + 1))}
-                className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground ring-1 ring-black/[0.06] transition-all hover:bg-card disabled:opacity-20 active:scale-95"
+                className="flex h-8 w-8 items-center justify-center rounded-xl bg-muted/50 text-muted-foreground ring-1 ring-black/[0.06] transition-all hover:bg-card disabled:opacity-20 active:scale-95"
               >
-                <IconChevronRight size={14} />
+                <IconChevronRight size={16} />
               </button>
             </div>
           </div>
