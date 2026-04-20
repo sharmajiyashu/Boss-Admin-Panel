@@ -1,4 +1,4 @@
-import { get, put, postFormData } from "@/lib/api";
+import { get, put, postFormData, deleteRequest } from "@/lib/api";
 
 export interface IUser {
   id: string;
@@ -54,6 +54,10 @@ export const userService = {
 
   updateUser: async (id: string, data: Partial<IUser>): Promise<IUser> => {
     return put<IUser>(`/users/${id}`, data);
+  },
+
+  deleteUser: async (id: string): Promise<any> => {
+    return deleteRequest<any>(`/users/${id}`);
   },
 
   uploadUserProfileImage: async (file: File): Promise<{ mediaId: string; url: string }> => {

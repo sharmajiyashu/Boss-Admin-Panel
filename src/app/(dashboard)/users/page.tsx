@@ -16,7 +16,18 @@ import {
   IconPhone,
   IconMapPin,
   IconFilter,
-  IconDotsVertical
+  IconDotsVertical,
+  IconCircleCheckFilled,
+  IconRosetteFilled,
+  IconCircleCheck,
+  IconRosette,
+  IconEye,
+  IconTrash,
+  IconLock,
+  IconLockOpen,
+  IconCalendar,
+  IconShieldCheck,
+  IconUserCircle
 } from "@tabler/icons-react";
 import { twMerge } from "tailwind-merge";
 import * as Dialog from "@radix-ui/react-dialog";
@@ -31,29 +42,26 @@ export default function UsersPage() {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
-  const [cityFilter, setCityFilter] = useState("");
-  const [stateFilter, setStateFilter] = useState("");
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
 
+  const [isDossierOpen, setIsDossierOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<IUser | null>(null);
 
   // Form state for editing
-  const [editData, setEditData] = useState<Partial<IUser>>({
-    status: "active",
-    userRole: "user",
-  });
+  const [editData, setEditData] = useState<Partial<IUser>>({});
 
-  const closeEditDialog = () => {
+  const closeDossier = () => setIsDossierOpen(false);
+  const closeEdit = () => {
     setIsEditOpen(false);
-    setSelectedUser(null);
+    setEditData({});
   };
 
   // Queries
-  const { data: usersData, isLoading, isRefetching } = useQuery({
-    queryKey: ["users", page, limit, searchTerm, roleFilter, cityFilter, stateFilter],
-    queryFn: () => userService.getUsers(page, limit, searchTerm, roleFilter, cityFilter, stateFilter),
+  const { data: usersData, isLoading, isRefetching, refetch } = useQuery({
+    queryKey: ["users", page, limit, searchTerm, roleFilter],
+    queryFn: () => userService.getUsers(page, limit, searchTerm, roleFilter),
   });
 
   // Mutations
@@ -61,11 +69,26 @@ export default function UsersPage() {
     mutationFn: ({ id, data }: { id: string; data: Partial<IUser> }) => userService.updateUser(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
-      toast.success("User updated successfully");
-      closeEditDialog();
+      toast.success("User configuration updated");
+      closeEdit();
+      if (selectedUser) {
+        // Refresh selected user data in dossier if open
+        const updated = usersData?.data.find(u => (u._id || u.id) === (selectedUser._id || selectedUser.id));
+        if (updated) setSelectedUser(updated);
+      }
     },
-    onError: (error: unknown) =>
-      toast.error(getErrorMessage(error, "Failed to update user")),
+    onError: (error: unknown) => toast.error(getErrorMessage(error, "Update failed")),
+  });
+
+  // Since delete is not in userService, we'll mock the behavior or you can add it to service
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => userService.deleteUser(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.error("User account archived");
+      closeDossier();
+    },
+    onError: (error: unknown) => toast.error(getErrorMessage(error, "Archival failed")),
   });
 
   const handleEdit = (user: IUser) => {
@@ -73,463 +96,501 @@ export default function UsersPage() {
     setEditData({
       status: user.status,
       userRole: user.userRole,
+      isVerified: user.isVerified,
+      isPremium: user.isPremium
     });
     setIsEditOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedUser) return;
-    updateMutation.mutate({ id: selectedUser._id || selectedUser.id, data: editData });
+  const handleToggleStatus = (user: IUser) => {
+    const newStatus = user.status === "active" ? "inactive" : "active";
+    updateMutation.mutate({ 
+        id: user._id || user.id, 
+        data: { status: newStatus } 
+    });
   };
 
   const users = usersData?.data || [];
   const meta = usersData?.meta;
+  const totalPages = meta?.totalPages || 1;
 
   const StatusBadge = ({ status }: { status: string }) => (
-    <span className={twMerge(
-      "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold ring-1 ring-inset uppercase tracking-tight",
-      status === "active" ? "bg-emerald-50 text-emerald-600 ring-emerald-500/10" : "bg-red-50 text-red-600 ring-red-500/10"
+    <div className={twMerge(
+      "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ring-1 ring-inset",
+      status === "active" ? "bg-emerald-50 text-emerald-600 ring-emerald-500/20" : "bg-rose-50 text-rose-600 ring-rose-500/20"
     )}>
-      <div className={twMerge("h-1 w-1 rounded-full bg-current", status === "active" && "animate-pulse")} />
+      <div className={twMerge("h-1.5 w-1.5 rounded-full bg-current", status === "active" && "animate-pulse")} />
       {status}
-    </span>
+    </div>
   );
 
-  const UserAvatar = ({ user, className = "h-10 w-10" }: { user: IUser, className?: string }) => {
+  const UserAvatar = ({ user, className = "h-12 w-12" }: { user: IUser, className?: string }) => {
     const profileImageUrl = (user as any).profileImage?.url;
-
     return (
       <div className={twMerge(
-        "shrink-0 flex items-center justify-center rounded-xl bg-muted text-muted-foreground transition-colors font-bold overflow-hidden relative border border-border/30",
+        "shrink-0 flex items-center justify-center rounded-2xl bg-slate-100 text-slate-400 font-black relative border border-slate-200/50 shadow-inner overflow-hidden",
         className
       )}>
         {profileImageUrl ? (
-          <Image
-            src={profileImageUrl}
-            alt={`${user.firstName} ${user.lastName}`}
-            fill
-            className="object-cover"
-          />
+          <Image src={profileImageUrl} alt="" fill className="object-cover" />
         ) : (
-          <span className="text-[10px] uppercase">{user.firstName[0]}{user.lastName[0]}</span>
+          <span className="text-[12px] uppercase">{(user.firstName?.[0] || "")+(user.lastName?.[0] || "")}</span>
         )}
       </div>
     );
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-8 px-4 sm:px-6 font-sans">
-      {/* Header section with Responsive Layout */}
-      <div className="flex flex-col gap-6 pt-4">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-2xl bg-[#B5651D]/10 flex items-center justify-center text-[#B5651D] shadow-sm">
-              <IconUsers size={22} />
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12 font-sans overflow-hidden">
+      {/* Premium Header Container */}
+      <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between p-8 rounded-[32px] bg-white border border-slate-200/60 shadow-sm relative overflow-hidden group">
+         <div className="absolute top-0 right-0 p-12 opacity-[0.03] rotate-12 group-hover:rotate-6 transition-transform">
+            <IconUsers size={200} stroke={2} />
+         </div>
+         
+         <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-2">
+               <div className="h-10 w-10 flex items-center justify-center rounded-xl bg-[#b66dff]/10 text-[#b66dff] shadow-sm">
+                  <IconShieldCheck size={22} />
+               </div>
+               <h1 className="text-3xl font-black tracking-tighter text-slate-900">Users</h1>
             </div>
-            <div>
-              <h1 className="text-xl font-extrabold tracking-tight text-foreground">User Management</h1>
-              <p className="text-[11px] font-medium text-muted-foreground/60">Manage permissions and oversee platform activities</p>
-            </div>
-          </div>
+            <p className="text-slate-500 font-medium max-w-md">Overview and management of platform identities and authentication states.</p>
+         </div>
 
-          <div className="flex items-center gap-2">
+         <div className="flex flex-wrap items-center gap-4 relative z-10">
+            <div className="relative group">
+              <IconSearch className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#b66dff] transition-colors" />
+              <input
+                type="text"
+                placeholder="Search by identity or mail..."
+                value={searchTerm}
+                onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
+                className="h-12 w-full sm:w-80 rounded-2xl border border-slate-200 bg-slate-50/50 pl-11 pr-4 text-sm font-bold transition-all focus:bg-white focus:border-[#b66dff]/40 focus:ring-4 focus:ring-[#b66dff]/5 outline-none placeholder:text-slate-400"
+              />
+            </div>
+
             <button
-              type="button"
-              onClick={() => queryClient.invalidateQueries({ queryKey: ["users"] })}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border-0 bg-card text-muted-foreground shadow-sm ring-1 ring-black/[0.05] transition-all hover:bg-muted/50 active:scale-95"
-              title="Refresh"
+               onClick={() => refetch()}
+               disabled={isLoading || isRefetching}
+               className="h-12 w-12 flex items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-500 hover:text-[#b66dff] hover:border-[#b66dff]/30 transition-all shadow-sm active:scale-95 disabled:opacity-50"
             >
-              <IconReload className={twMerge("h-4 w-4", (isLoading || isRefetching) && "animate-spin")} />
+               <IconReload size={20} className={twMerge((isLoading || isRefetching) && "animate-spin")} />
             </button>
-          </div>
-        </div>
-
-        {/* Search and Filters Bar */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-3 p-4 rounded-2xl bg-card/60 backdrop-blur-sm shadow-sm ring-1 ring-black/[0.04]">
-          <div className="md:col-span-4 relative group">
-            <IconSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/30 group-focus-within:text-[#B5651D] transition-colors" />
-            <input
-              type="text"
-              placeholder="Search by name, email, phone..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setPage(1);
-              }}
-              className="h-10 w-full rounded-xl border-0 bg-muted/40 pl-10 pr-3 text-xs font-semibold text-foreground shadow-[inset_0_1px_2px_rgba(0,0,0,0.03)] outline-none focus:ring-2 focus:ring-[#B5651D]/20 transition-all placeholder:text-muted-foreground/40"
-            />
-          </div>
-
-          <div className="md:col-span-2">
-            <NativeSelect
-              value={roleFilter}
-              onChange={(e) => {
-                setRoleFilter(e.target.value);
-                setPage(1);
-              }}
-              className="h-10 text-xs"
-            >
-              <option value="">All Roles</option>
-              <option value="user">User</option>
-              <option value="admin">Administrator</option>
-            </NativeSelect>
-          </div>
-
-          <div className="md:col-span-3">
-            <div className="relative group">
-              <IconMapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/30 group-focus-within:text-[#B5651D]" />
-              <input
-                type="text"
-                placeholder="City..."
-                value={cityFilter}
-                onChange={(e) => {
-                  setCityFilter(e.target.value);
-                  setPage(1);
-                }}
-                className="h-10 w-full rounded-xl border-0 bg-muted/40 pl-9 pr-3 text-xs font-semibold text-foreground shadow-[inset_0_1px_2px_rgba(0,0,0,0.03)] outline-none focus:ring-2 focus:ring-[#B5651D]/20 transition-all placeholder:text-muted-foreground/40"
-              />
-            </div>
-          </div>
-
-          <div className="md:col-span-3">
-            <div className="relative group">
-              <IconFilter className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/30 group-focus-within:text-[#B5651D]" />
-              <input
-                type="text"
-                placeholder="State..."
-                value={stateFilter}
-                onChange={(e) => {
-                  setStateFilter(e.target.value);
-                  setPage(1);
-                }}
-                className="h-10 w-full rounded-xl border-0 bg-muted/40 pl-9 pr-3 text-xs font-semibold text-foreground shadow-[inset_0_1px_2px_rgba(0,0,0,0.03)] outline-none focus:ring-2 focus:ring-[#B5651D]/20 transition-all placeholder:text-muted-foreground/40"
-              />
-            </div>
-          </div>
-        </div>
+         </div>
       </div>
 
       {/* Main Content Area */}
-      <div className="min-h-[400px]">
+      <div className="space-y-6">
         {isLoading ? (
-          <div className="flex h-64 flex-col items-center justify-center gap-3 rounded-2xl bg-card shadow-sm ring-1 ring-black/[0.04]">
-            <IconLoader2 className="h-8 w-8 animate-spin text-[#B5651D]/20" />
-            <p className="text-[11px] font-bold text-muted-foreground/40 text-center tracking-tight">Gathering user profiles...</p>
+          <div className="flex flex-col items-center justify-center h-[400px] gap-4 bg-white rounded-[32px] border border-slate-200/60 transition-all shadow-sm">
+             <div className="relative h-16 w-16">
+                <div className="absolute inset-0 rounded-full border-4 border-slate-100 border-t-[#B5651D] animate-spin" />
+             </div>
+             <p className="text-slate-400 font-black uppercase text-[10px] tracking-widest">Aggregating User Data...</p>
           </div>
         ) : users.length === 0 ? (
-          <div className="flex h-64 flex-col items-center justify-center gap-4 rounded-2xl bg-card p-8 text-center shadow-sm ring-1 ring-black/[0.04]">
-            <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center">
-              <IconUsers size={32} className="text-muted-foreground/10" strokeWidth={1} />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-foreground">No users matching those filters</p>
-              <p className="text-xs text-muted-foreground/50">Try refining your search terms or filters</p>
-            </div>
+          <div className="flex flex-col items-center justify-center h-[400px] gap-4 bg-white rounded-[32px] border-dashed border-2 border-slate-200 text-center animate-in zoom-in-95 duration-500">
+             <IconUserCircle size={48} className="text-slate-200" />
+             <div>
+                <p className="text-slate-900 font-bold">No Users Detected</p>
+                <p className="text-xs text-slate-400 mt-1">Refine your search parameters or check the synchronization logs.</p>
+             </div>
           </div>
         ) : (
           <>
-            {/* Desktop Table View */}
-            <div className="hidden lg:block overflow-hidden rounded-2xl bg-card shadow-md shadow-black/[0.02] ring-1 ring-black/[0.05]">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-muted/10 border-b border-border/40">
-                      <th className="px-8 py-5 text-[10px] font-bold text-muted-foreground/50 uppercase tracking-[0.15em]">Identity</th>
-                      <th className="px-6 py-5 text-[10px] font-bold text-muted-foreground/50 uppercase tracking-[0.15em]">Communication</th>
-                      <th className="px-6 py-5 text-[10px] font-bold text-muted-foreground/50 uppercase tracking-[0.15em]">Geography</th>
-                      <th className="px-6 py-5 text-[10px] font-bold text-muted-foreground/50 uppercase tracking-[0.15em] text-center">Status</th>
-                      <th className="px-8 py-5 text-right text-[10px] font-bold text-muted-foreground/50 uppercase tracking-[0.15em]">Operations</th>
+            {/* High-Fidelity Table View (Desktop) */}
+            <div className="hidden lg:block overflow-hidden rounded-[32px] border border-slate-200/60 bg-white shadow-sm ring-1 ring-slate-100/50">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50/50 border-b border-slate-100">
+                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Profile & Identity</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Contact Metadata</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Platform Role</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Status</th>
+                    <th className="px-8 py-5 text-right text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {users.map((user) => (
+                    <tr key={user._id || user.id} className="group hover:bg-slate-50/50 transition-colors">
+                      <td className="px-8 py-4">
+                        <div className="flex items-center gap-4">
+                          <UserAvatar user={user} className="h-11 w-11 shadow-sm ring-1 ring-slate-200/20" />
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-sm font-black text-slate-900 truncate tracking-tight">{user.firstName} {user.lastName}</span>
+                            <div className="flex items-center gap-2 mt-1">
+                               {user.isVerified && <IconCircleCheckFilled size={14} className="text-blue-500" />}
+                               {user.isPremium && <IconRosetteFilled size={14} className="text-amber-500" />}
+                               <span className="text-[10px] font-bold text-slate-400 tracking-tight">{new Date(user.createdAt).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-2 text-slate-600">
+                            <IconMail size={12} className="opacity-40" />
+                            <span className="text-xs font-bold truncate max-w-[180px]">{user.email}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-slate-400">
+                            <IconPhone size={12} className="opacity-40" />
+                            <span className="text-[10px] font-medium">{user.mobile || "Unregistered"}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="px-3 py-1 rounded-xl bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-widest border border-slate-200">
+                           {user.userRole}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <StatusBadge status={user.status} />
+                      </td>
+                      <td className="px-8 py-4 text-right">
+                         <div className="flex items-center justify-end gap-2">
+                            <button 
+                               onClick={() => { setSelectedUser(user); setIsDossierOpen(true); }}
+                               className="h-10 w-10 flex items-center justify-center rounded-xl text-slate-400 hover:bg-slate-900 hover:text-white transition-all shadow-sm active:scale-95"
+                               title="View Dossier"
+                            >
+                               <IconEye size={18} />
+                            </button>
+                            <button 
+                               onClick={() => handleEdit(user)}
+                               className="h-10 w-10 flex items-center justify-center rounded-xl text-slate-400 hover:bg-white hover:text-blue-600 hover:ring-1 hover:ring-blue-100 transition-all shadow-sm active:scale-95"
+                               title="Modify Credentials"
+                            >
+                               <IconEdit size={18} />
+                            </button>
+                         </div>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-black/[0.03]">
-                    {users.map((user) => (
-                      <tr key={user.id || user._id} className="group transition-all hover:bg-muted/[0.15] cursor-default">
-                        <td className="px-8 py-4">
-                          <div className="flex items-center gap-4">
-                            <UserAvatar user={user} className="h-11 w-11 shadow-sm ring-2 ring-transparent group-hover:ring-[#B5651D]/10 group-hover:bg-[#B5651D]/5" />
-                            <div className="flex flex-col">
-                              <span className="text-[14px] font-bold text-foreground leading-tight group-hover:text-[#B5651D] transition-colors">
-                                {user.firstName} {user.lastName}
-                              </span>
-                              <span className="text-[10px] font-bold text-muted-foreground/40 flex items-center gap-1 mt-0.5 uppercase">
-                                <span className={twMerge("px-1.5 py-0.5 rounded-md", user.userRole === 'admin' ? "bg-purple-50 text-purple-600" : "bg-blue-50 text-blue-600")}>
-                                  {user.userRole}
-                                </span>
-                              </span>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-2">
-                              <div className="h-5 w-5 rounded-md bg-muted/40 flex items-center justify-center text-muted-foreground/50">
-                                <IconMail size={11} />
-                              </div>
-                              <span className="text-[12px] font-medium text-foreground/80">{user.email}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <div className="h-5 w-5 rounded-md bg-muted/40 flex items-center justify-center text-muted-foreground/50">
-                                <IconPhone size={11} />
-                              </div>
-                              <span className="text-[11px] font-semibold text-foreground/60 tracking-tight">{user.mobile}</span>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex flex-col gap-0.5">
-                            <div className="flex items-center gap-1.5">
-                              <IconMapPin size={12} className="text-[#B5651D]/40" />
-                              <span className="text-[12px] font-bold text-foreground/70">{user.location?.city || "—"}</span>
-                            </div>
-                            <span className="text-[10px] font-bold text-muted-foreground/30 ml-4 uppercase tracking-wider">{user.location?.state || "N/A"}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                          <StatusBadge status={user.status} />
-                        </td>
-                        <td className="px-8 py-4 text-right">
-                          <button
-                            onClick={() => handleEdit(user)}
-                            className="h-9 w-9 rounded-xl flex items-center justify-center text-muted-foreground/30 hover:bg-[#B5651D] hover:text-white border border-transparent shadow-none hover:shadow-lg hover:shadow-[#B5651D]/20 transition-all active:scale-95 group/btn"
-                            title="Edit User"
-                          >
-                            <IconEdit size={16} className="group-hover/btn:rotate-12 transition-transform" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                  ))}
+                </tbody>
+              </table>
             </div>
 
-            {/* Mobile/Tablet Grid View */}
+            {/* Mobile Adaptive Card View */}
             <div className="lg:hidden grid grid-cols-1 md:grid-cols-2 gap-4">
-              {users.map((user) => (
-                <div
-                  key={user.id || user._id}
-                  className="bg-card rounded-2xl p-5 shadow-sm ring-1 ring-black/[0.04] space-y-4 active:scale-[0.99] transition-transform"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <UserAvatar user={user} className="h-12 w-12" />
-                      <div>
-                        <h3 className="text-sm font-bold text-foreground">{user.firstName} {user.lastName}</h3>
-                        <p className="text-[10px] font-bold text-[#B5651D] uppercase tracking-wider">{user.userRole}</p>
-                      </div>
+               {users.map((user) => (
+                 <div key={user._id || user.id} className="bg-white rounded-[28px] p-6 border border-slate-200/60 shadow-sm space-y-5 animate-in slide-in-from-bottom-2 duration-500">
+                    <div className="flex items-start justify-between">
+                       <div className="flex items-center gap-3">
+                          <UserAvatar user={user} className="h-14 w-14 shadow-md shadow-slate-100" />
+                          <div>
+                             <h3 className="text-sm font-black text-slate-900 leading-tight">{user.firstName} {user.lastName}</h3>
+                             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{user.userRole}</p>
+                          </div>
+                       </div>
+                       <StatusBadge status={user.status} />
                     </div>
-                    <StatusBadge status={user.status} />
+
+                    <div className="space-y-2.5 py-4 border-y border-slate-100">
+                       <div className="flex items-center justify-between text-xs">
+                          <span className="font-bold text-slate-400 uppercase tracking-widest text-[9px]">Identity</span>
+                          <span className="font-bold text-slate-800">{user.email}</span>
+                       </div>
+                       <div className="flex items-center justify-between text-xs">
+                          <span className="font-bold text-slate-400 uppercase tracking-widest text-[9px]">Contact</span>
+                          <span className="font-bold text-slate-500">{user.mobile || "NA"}</span>
+                       </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                       <button 
+                          onClick={() => { setSelectedUser(user); setIsDossierOpen(true); }}
+                          className="flex-1 h-12 rounded-2xl bg-slate-900 text-white text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg active:scale-95"
+                       >
+                          <IconEye size={16} /> View Dossier
+                       </button>
+                       <button 
+                          onClick={() => handleEdit(user)}
+                          className="h-12 w-12 rounded-2xl bg-slate-100 text-slate-600 flex items-center justify-center active:scale-95 transition-all"
+                       >
+                          <IconEdit size={18} />
+                       </button>
+                    </div>
+                 </div>
+               ))}
+            </div>
+
+            {/* Premium Pagination Bar */}
+            {totalPages > 1 && (
+              <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-[28px] bg-white border border-slate-200/60 shadow-sm animate-in fade-in duration-700">
+                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  Total Managed — {meta?.total} Accounts <span className="mx-2 opacity-30">|</span> PAGE {page} of {totalPages}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    disabled={page === 1}
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-all hover:bg-slate-50 disabled:opacity-20 active:scale-95"
+                  >
+                    <IconChevronLeft size={18} />
+                  </button>
+
+                  <div className="flex items-center gap-1.5 px-2">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter(p => Math.abs(p - page) <= 2 || p === 1 || p === totalPages)
+                      .map((p, idx, arr) => (
+                        <React.Fragment key={p}>
+                          {idx > 0 && arr[idx-1] !== p - 1 && <span className="px-1 text-slate-300">...</span>}
+                          <button
+                            onClick={() => setPage(p)}
+                            className={twMerge(
+                              "h-10 min-w-[40px] rounded-xl text-[11px] font-black transition-all",
+                              p === page ? "bg-slate-900 text-white shadow-xl shadow-slate-200" : "text-slate-500 hover:bg-slate-50"
+                            )}
+                          >
+                            {p}
+                          </button>
+                        </React.Fragment>
+                      ))}
                   </div>
 
-                  <div className="space-y-2 py-2 border-y border-black/[0.03]">
-                    <div className="flex items-center gap-3">
-                      <div className="h-7 w-7 rounded-lg bg-muted/40 flex items-center justify-center text-muted-foreground/60">
-                        <IconMail size={14} />
-                      </div>
-                      <span className="text-xs font-medium text-foreground/80 truncate">{user.email}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="h-7 w-7 rounded-lg bg-muted/40 flex items-center justify-center text-muted-foreground/60">
-                        <IconPhone size={14} />
-                      </div>
-                      <span className="text-[11px] font-bold text-foreground/70">{user.mobile}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="h-7 w-7 rounded-lg bg-[#B5651D]/5 flex items-center justify-center text-[#B5651D]/50">
-                        <IconMapPin size={14} />
-                      </div>
-                      <span className="text-[11px] font-bold text-foreground/70">
-                        {user.location?.city ? `${user.location.city}, ${user.location.state || ''}` : "City not specified"}
-                      </span>
+                  <button
+                    disabled={page === totalPages}
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-all hover:bg-slate-50 disabled:opacity-20 active:scale-95"
+                  >
+                    <IconChevronRight size={18} />
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* User Dossier Modal (View Mode) */}
+      <Dialog.Root open={isDossierOpen} onOpenChange={setIsDossierOpen}>
+        <Dialog.Portal>
+           <Dialog.Overlay className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-300" />
+           <Dialog.Content className="fixed left-1/2 top-1/2 z-[101] w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[40px] border-0 bg-white p-0 shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+              {selectedUser && (
+                <>
+                  <Dialog.Title className="sr-only">User Dossier: {selectedUser.firstName}</Dialog.Title>
+                  <Dialog.Description className="sr-only">Full administrative overview and identity metadata for this user account.</Dialog.Description>
+                  
+                  {/* Dossier Header */}
+                  <div className="relative h-48 shrink-0 bg-slate-900 overflow-hidden">
+                     <div className="absolute inset-0 bg-[linear-gradient(268.96deg,#B5651D_0.19%,#FE9738_99.72%)] opacity-80" />
+                     <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-white/5 blur-3xl" />
+                     
+                     <div className="absolute top-6 left-8 right-8 flex items-start justify-between z-10">
+                        <div className="flex items-center gap-1.5">
+                           <div className="px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[9px] font-black text-white uppercase tracking-widest">
+                              ID: {selectedUser._id?.slice(-8) || selectedUser.id.slice(-8)}
+                           </div>
+                           <StatusBadge status={selectedUser.status} />
+                        </div>
+                        <Dialog.Close className="h-10 w-10 flex items-center justify-center rounded-full bg-black/20 text-white backdrop-blur-md hover:bg-black/40 transition-all z-20">
+                           <IconX size={20} />
+                        </Dialog.Close>
+                     </div>
+
+                     <div className="absolute -bottom-8 left-10 flex items-end gap-6 z-10">
+                        <UserAvatar user={selectedUser} className="h-32 w-32 rounded-[40px] ring-[6px] ring-white shadow-2xl" />
+                        <div className="pb-10">
+                           <h2 className="text-2xl font-black text-white tracking-tighter shadow-sm">{selectedUser.firstName} {selectedUser.lastName}</h2>
+                           <div className="flex items-center gap-3 mt-1 text-white/70">
+                              <span className="text-xs font-bold tracking-tight uppercase">{selectedUser.userRole}</span>
+                              <div className="h-1 w-1 rounded-full bg-white/30" />
+                              <span className="text-[10px] font-bold uppercase tracking-widest">Global Account</span>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+
+                  {/* Dossier Body */}
+                  <div className="flex-1 overflow-y-auto p-10 pt-16 scrollbar-none space-y-10">
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {/* Primary Metadata */}
+                        <div className="space-y-8">
+                           <section>
+                              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                 <IconMail size={12} className="text-[#B5651D]" /> Identity Access
+                              </h4>
+                              <div className="p-5 rounded-3xl bg-slate-50 border border-slate-100 flex flex-col gap-1">
+                                 <p className="text-sm font-black text-slate-900">{selectedUser.email}</p>
+                                 <p className="text-[10px] font-bold text-slate-400">Primary Authentication Email</p>
+                              </div>
+                           </section>
+
+                           <section>
+                              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                 <IconPhone size={12} className="text-[#B5651D]" /> Contact Vector
+                              </h4>
+                              <div className="p-5 rounded-3xl bg-slate-50 border border-slate-100 flex flex-col gap-1">
+                                 <p className="text-sm font-black text-slate-900">{selectedUser.mobile || "N/A"}</p>
+                                 <p className="text-[10px] font-bold text-slate-400">Mobile Verification Number</p>
+                              </div>
+                           </section>
+                        </div>
+
+                        {/* Additional Context */}
+                        <div className="space-y-8">
+                           <section>
+                              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                 <IconMapPin size={12} className="text-[#B5651D]" /> Operational Origin
+                              </h4>
+                              <div className="p-5 rounded-3xl bg-slate-50 border border-slate-100">
+                                 <p className="text-sm font-black text-slate-900">
+                                    {(selectedUser.location?.city || "Unmapped")}
+                                    {selectedUser.location?.state && `, ${selectedUser.location.state}`}
+                                 </p>
+                                 <p className="text-[10px] font-bold text-slate-400 mt-1 line-clamp-1">{selectedUser.location?.address || "Address details not disclosed."}</p>
+                              </div>
+                           </section>
+
+                           <section>
+                              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                 <IconCalendar size={12} className="text-[#B5651D]" /> System Lifecycle
+                              </h4>
+                              <div className="grid grid-cols-2 gap-3">
+                                 <div className="p-4 rounded-[22px] bg-slate-50 border border-slate-100">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Born On</p>
+                                    <p className="text-xs font-black text-slate-900">{new Date(selectedUser.createdAt).toLocaleDateString()}</p>
+                                 </div>
+                                 <div className="p-4 rounded-[22px] bg-slate-50 border border-slate-100">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase mb-1">State</p>
+                                    <p className="text-xs font-black text-emerald-600">Active</p>
+                                 </div>
+                              </div>
+                           </section>
+                        </div>
+                     </div>
+                  </div>
+
+                  {/* Dossier Intelligence Footer (Actions) */}
+                  <div className="p-8 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-4">
+                     <div className="flex gap-2">
+                        <button 
+                           onClick={() => { closeDossier(); handleEdit(selectedUser); }}
+                           className="h-12 px-6 rounded-2xl bg-slate-900 text-white text-[11px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-slate-800 transition-all active:scale-95"
+                        >
+                           <IconEdit size={16} /> Modify Profile
+                        </button>
+                        <button 
+                           onClick={() => handleToggleStatus(selectedUser)}
+                           disabled={updateMutation.isPending}
+                           className={twMerge(
+                              "h-12 px-6 rounded-2xl border text-[11px] font-black uppercase tracking-widest flex items-center gap-2 transition-all active:scale-95",
+                              selectedUser.status === "active" 
+                                ? "bg-white text-rose-600 border-rose-200 hover:bg-rose-50" 
+                                : "bg-emerald-600 text-white border-transparent hover:bg-emerald-700"
+                           )}
+                        >
+                           {selectedUser.status === "active" ? (
+                              <><IconLock size={16} /> Disable Access</>
+                           ) : (
+                              <><IconLockOpen size={16} /> Restore Access</>
+                           )}
+                        </button>
+                     </div>
+
+                     <div className="flex gap-2">
+                        <button 
+                           onClick={() => {
+                               if (window.confirm("Archive this identity? This cannot be undone.")) {
+                                   deleteMutation.mutate(selectedUser._id || selectedUser.id);
+                               }
+                           }}
+                           disabled={deleteMutation.isPending}
+                           className="h-12 w-12 rounded-2xl border border-rose-200 text-rose-600 hover:bg-rose-50 flex items-center justify-center transition-all active:scale-95"
+                           title="Purge Identity"
+                        >
+                           <IconTrash size={20} />
+                        </button>
+                     </div>
+                  </div>
+                </>
+              )}
+           </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+
+      {/* Edit User Modal (Existing structure with refined CSS) */}
+      <Dialog.Root open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-300" />
+          <Dialog.Content className="fixed left-1/2 top-1/2 z-[101] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[32px] border-0 bg-white p-0 shadow-2xl animate-in zoom-in-95 duration-200">
+            {selectedUser && (
+              <div className="flex flex-col">
+                 <Dialog.Title className="sr-only">Edit Identity: {selectedUser.firstName}</Dialog.Title>
+                 <Dialog.Description className="sr-only">Override administrative flags and system permissions.</Dialog.Description>
+                 
+                <div className="relative h-24 bg-[linear-gradient(268.96deg,#B5651D_0.19%,#FE9738_99.72%)] flex items-center justify-center">
+                   <Dialog.Close className="absolute top-4 right-4 h-8 w-8 flex items-center justify-center rounded-full bg-black/20 text-white backdrop-blur-md hover:bg-black/30 transition-all">
+                      <IconX size={16} />
+                   </Dialog.Close>
+                   <div className="absolute -bottom-10 left-1/2 -translate-x-1/2">
+                      <UserAvatar user={selectedUser} className="h-20 w-20 rounded-[28px] ring-8 ring-white shadow-xl shadow-slate-100" />
+                   </div>
+                </div>
+
+                <div className="pt-14 pb-8 px-8 text-center bg-white">
+                  <h3 className="text-lg font-black text-slate-900 leading-none">{selectedUser.firstName} {selectedUser.lastName}</h3>
+                  <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-widest">{selectedUser.email}</p>
+                </div>
+
+                <form 
+                   onSubmit={(e) => {
+                       e.preventDefault();
+                       updateMutation.mutate({ id: selectedUser._id || selectedUser.id, data: editData });
+                   }} 
+                   className="px-8 pb-10 space-y-6 bg-white"
+                >
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Access Control</label>
+                    <NativeSelect
+                      value={editData.status}
+                      onChange={(e) => setEditData(p => ({ ...p, status: e.target.value as any }))}
+                      className="h-12 text-xs font-bold rounded-2xl bg-slate-50 border-slate-100"
+                    >
+                      <option value="active">Permit Access</option>
+                      <option value="inactive">Deny Access</option>
+                    </NativeSelect>
+                  </div>
+
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Permission Flags</label>
+                    <div className="grid grid-cols-2 gap-3">
+                       <button
+                         type="button"
+                         onClick={() => setEditData(p => ({ ...p, isVerified: !p.isVerified }))}
+                         className={twMerge(
+                           "h-12 rounded-2xl border text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all",
+                           editData.isVerified ? "bg-blue-50 text-blue-600 border-blue-200" : "bg-slate-50 text-slate-400 border-slate-100"
+                         )}
+                       >
+                         {editData.isVerified ? "Verified" : "Pending"}
+                       </button>
+                       <button
+                         type="button"
+                         onClick={() => setEditData(p => ({ ...p, isPremium: !p.isPremium }))}
+                         className={twMerge(
+                           "h-12 rounded-2xl border text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all",
+                           editData.isPremium ? "bg-amber-50 text-amber-600 border-amber-200" : "bg-slate-50 text-slate-400 border-slate-100"
+                         )}
+                       >
+                         {editData.isPremium ? "Premium" : "Standard"}
+                       </button>
                     </div>
                   </div>
 
                   <button
-                    onClick={() => handleEdit(user)}
-                    className="w-full h-9 rounded-xl bg-muted/50 text-xs font-bold text-foreground hover:bg-[#B5651D] hover:text-white transition-all flex items-center justify-center gap-2"
+                    type="submit"
+                    disabled={updateMutation.isPending}
+                    className="h-12 w-full rounded-2xl bg-slate-900 text-white text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-xl shadow-slate-200 active:scale-95 disabled:opacity-50 transition-all mt-4"
                   >
-                    <IconEdit size={14} />
-                    Manage Account
+                    {updateMutation.isPending ? <IconLoader2 size={16} className="animate-spin" /> : <><IconDeviceFloppy size={16} /> Synchronize Access</>}
                   </button>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-
-        {/* Floating Pagination Bar */}
-        {meta && meta.totalPages > 1 && (
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-card/60 backdrop-blur-md shadow-[0_-1px_10px_rgba(0,0,0,0.02)] ring-1 ring-black/[0.04]">
-            <div className="text-[10px] font-extrabold text-muted-foreground/40 uppercase tracking-widest">
-              Records {((page - 1) * limit) + 1} — {Math.min(page * limit, meta.total)} <span className="mx-2 opacity-50">/</span> TOTAL {meta.total}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                disabled={page === 1}
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                className="flex h-8 w-8 items-center justify-center rounded-xl bg-muted/50 text-muted-foreground ring-1 ring-black/[0.06] transition-all hover:bg-card disabled:opacity-20 active:scale-95"
-              >
-                <IconChevronLeft size={16} />
-              </button>
-
-              <div className="flex items-center gap-1.5">
-                {Array.from({ length: meta.totalPages }, (_, i) => i + 1)
-                  .filter(p => {
-                    // Show first page, last page, and 1 page around current
-                    if (meta.totalPages <= 5) return true;
-                    return Math.abs(p - page) <= 2 || p === 1 || p === meta.totalPages;
-                  })
-                  .map((p, idx, arr) => (
-                    <React.Fragment key={p}>
-                      {idx > 0 && arr[idx - 1] !== p - 1 && (
-                        <span className="text-muted-foreground/30 px-1">...</span>
-                      )}
-                      <button
-                        onClick={() => setPage(p)}
-                        className={twMerge(
-                          "h-8 min-w-[32px] rounded-xl px-2 text-[11px] font-bold transition-all",
-                          page === p
-                            ? "bg-[linear-gradient(268.96deg,#B5651D_0.19%,#FE9738_99.72%)] text-white shadow-lg shadow-[#B5651D]/20 animate-in zoom-in-90"
-                            : "text-muted-foreground ring-1 ring-transparent hover:bg-card hover:text-[#B5651D] hover:ring-black/[0.06]"
-                        )}
-                      >
-                        {p}
-                      </button>
-                    </React.Fragment>
-                  ))}
+                </form>
               </div>
-
-              <button
-                disabled={page === meta.totalPages}
-                onClick={() => setPage(p => Math.min(meta.totalPages, p + 1))}
-                className="flex h-8 w-8 items-center justify-center rounded-xl bg-muted/50 text-muted-foreground ring-1 ring-black/[0.06] transition-all hover:bg-card disabled:opacity-20 active:scale-95"
-              >
-                <IconChevronRight size={16} />
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Edit User Modal */}
-      <Dialog.Root
-        open={isEditOpen}
-        onOpenChange={(open) => {
-          if (!open) closeEditDialog();
-        }}
-      >
-        <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm animate-in fade-in duration-300" />
-          <Dialog.Content className="fixed left-[50%] top-[50%] z-[101] w-full max-w-sm translate-x-[-50%] translate-y-[-50%] overflow-hidden rounded-[24px] border-0 bg-card p-0 shadow-2xl outline-none ring-1 ring-black/[0.1] animate-in zoom-in-95 fade-in duration-200">
-            <div className="relative h-24 bg-[linear-gradient(268.96deg,#B5651D_0.19%,#FE9738_99.72%)] flex items-center justify-center">
-              <div className="absolute top-4 right-4 group">
-                <Dialog.Close className="h-8 w-8 flex items-center justify-center rounded-full bg-black/20 text-white backdrop-blur-md hover:bg-black/30 transition-all">
-                  <IconX size={16} />
-                </Dialog.Close>
-              </div>
-
-              <div className="absolute -bottom-10 left-1/2 -translate-x-1/2">
-                <div className="relative group">
-                  <div className="h-20 w-20 rounded-[22px] bg-card p-1 shadow-xl ring-1 ring-black/[0.05] overflow-hidden">
-                    <UserAvatar user={selectedUser!} className="h-full w-full rounded-[18px]" />
-                  </div>
-
-                  {/* Upload Overlay */}
-                  <label
-                    htmlFor="avatar-upload"
-                    className="absolute inset-0 flex items-center justify-center bg-black/40 text-white rounded-[22px] opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer backdrop-blur-[2px]"
-                  >
-                    <div className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center">
-                      <IconEdit size={14} />
-                    </div>
-                  </label>
-                  <input
-                    id="avatar-upload"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-
-                      const uploadPromise = userService.uploadUserProfileImage(file);
-                      toast.promise(uploadPromise, {
-                        pending: "Uploading image...",
-                        success: "Image uploaded! Save changes to apply.",
-                        error: "Upload failed"
-                      });
-
-                      try {
-                        const { mediaId, url } = await uploadPromise;
-                        setEditData(p => ({ ...p, profileImage: mediaId as any }));
-                        // Temporary update to show the new image
-                        if (selectedUser) {
-                          setSelectedUser({
-                            ...selectedUser,
-                            profileImage: { id: mediaId, url, _id: mediaId } as any
-                          });
-                        }
-                      } catch (err) { }
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-14 pb-8 px-6 text-center">
-              <h3 className="text-base font-extrabold text-foreground">{selectedUser?.firstName} {selectedUser?.lastName}</h3>
-              <p className="text-[11px] font-bold text-muted-foreground/40 mt-0.5 tracking-tight">{selectedUser?.email}</p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="px-6 pb-8 space-y-5">
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-extrabold text-muted-foreground/40 uppercase tracking-widest ml-1">Access Status</label>
-                <NativeSelect
-                  value={editData.status}
-                  onChange={(e) =>
-                    setEditData((p) => ({
-                      ...p,
-                      status: e.target.value as IUser["status"],
-                    }))
-                  }
-                  className="h-11 text-xs font-bold rounded-xl"
-                >
-                  <option value="active">Active Access</option>
-                  <option value="inactive">Suspended Access</option>
-                </NativeSelect>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-extrabold text-muted-foreground/40 uppercase tracking-widest ml-1">Administrative Role</label>
-                <NativeSelect
-                  value={editData.userRole}
-                  onChange={(e) => setEditData((p) => ({ ...p, userRole: e.target.value }))}
-                  className="h-11 text-xs font-bold rounded-xl"
-                >
-                  <option value="user">Standard User</option>
-                  <option value="admin">System Administrator</option>
-                </NativeSelect>
-              </div>
-
-              <div className="pt-3">
-                <button
-                  type="submit"
-                  disabled={updateMutation.isPending}
-                  className="h-12 w-full rounded-2xl bg-[linear-gradient(268.96deg,#B5651D_0.19%,#FE9738_99.72%)] text-[13px] font-bold text-white shadow-xl shadow-[#B5651D]/20 hover:opacity-95 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {updateMutation.isPending ? (
-                    <IconLoader2 size={18} className="animate-spin" />
-                  ) : (
-                    <>
-                      <IconDeviceFloppy size={18} />
-                      Commit Changes
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
+            )}
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>

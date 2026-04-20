@@ -283,12 +283,12 @@ export default function SubcategoriesPage() {
       {/* Header section identical to categories */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between py-2">
         <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-xl bg-[#B5651D]/5 flex items-center justify-center text-[#B5651D]">
-            <IconHierarchy size={20} />
+          <div className="h-10 w-10 rounded-xl bg-[#b66dff]/10 flex items-center justify-center text-[#b66dff]">
+            <IconHierarchy size={22} />
           </div>
           <div>
-            <h1 className="text-lg font-bold tracking-tight text-foreground">Subcategories</h1>
-            <p className="text-[11px] font-medium text-muted-foreground/60">Manage your product categorization levels</p>
+            <h1 className="text-xl font-bold tracking-tight text-slate-800">Subcategories</h1>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Categorization Hierarchy</p>
           </div>
         </div>
 
@@ -319,7 +319,7 @@ export default function SubcategoriesPage() {
             >
               <option value="">All categories</option>
               {cats.map((c) => (
-                <option key={c.id} value={c._id || c.id}>
+                <option key={c._id || c.id} value={c._id || c.id}>
                   {c.name}
                 </option>
               ))}
@@ -329,7 +329,7 @@ export default function SubcategoriesPage() {
           <button
             type="button"
             onClick={() => queryClient.invalidateQueries({ queryKey: ["subcategories"] })}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border-0 bg-muted/60 text-muted-foreground shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05] transition-all hover:bg-muted/80 active:scale-95"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border-0 bg-white text-slate-400 shadow-sm ring-1 ring-slate-100 transition-all hover:bg-slate-50 active:scale-95"
             title="Refresh"
           >
             <IconReload className={twMerge("h-3.5 w-3.5", (isLoading || isRefetching) && "animate-spin")} />
@@ -338,7 +338,7 @@ export default function SubcategoriesPage() {
           <button
             type="button"
             onClick={openNewDialog}
-            className="h-9 px-4 rounded-xl bg-[linear-gradient(268.96deg,#B5651D_0.19%,#FE9738_99.72%)] text-white text-[12px] font-bold flex items-center gap-2 shadow-lg shadow-[#B5651D]/10 hover:opacity-90 active:scale-95 transition-all outline-none border-none"
+            className="h-9 px-4 rounded-xl bg-gradient-to-r from-[#da8cff] to-[#9a55ff] text-white text-[11px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-[#b66dff]/20 hover:opacity-90 active:scale-95 transition-all outline-none border-none"
           >
             <IconPlus size={16} stroke={3} />
             Add New
@@ -560,8 +560,8 @@ export default function SubcategoriesPage() {
                         className={twMerge(
                           "h-8 min-w-[32px] rounded-xl px-2 text-[11px] font-bold transition-all",
                           page === p
-                            ? "bg-[linear-gradient(268.96deg,#B5651D_0.19%,#FE9738_99.72%)] text-white shadow-lg shadow-[#B5651D]/20 animate-in zoom-in-90"
-                            : "text-muted-foreground ring-1 ring-transparent hover:bg-card hover:text-[#B5651D] hover:ring-black/[0.06]"
+                            ? "bg-gradient-to-r from-[#da8cff] to-[#9a55ff] text-white shadow-lg shadow-[#b66dff]/20 animate-in zoom-in-90"
+                            : "text-muted-foreground ring-1 ring-transparent hover:bg-card hover:text-[#b66dff] hover:ring-black/[0.06]"
                         )}
                       >
                         {p}
@@ -688,7 +688,7 @@ export default function SubcategoriesPage() {
                   >
                     <option value="">Select category…</option>
                     {cats.map((c) => (
-                      <option key={c.id} value={c._id || c.id}>
+                      <option key={c._id || c.id} value={c._id || c.id}>
                         {c.name}
                       </option>
                     ))}

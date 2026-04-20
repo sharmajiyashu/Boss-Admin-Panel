@@ -1,27 +1,22 @@
 "use client";
 
 import * as React from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   IconUsers,
   IconReload,
-  IconArrowRight,
-  IconUser,
-  IconCalendarStats,
   IconCategory,
   IconPackage,
-  IconWallet,
   IconTrendingUp,
   IconShoppingBag,
-  IconClock,
-  IconCircleCheck,
-  IconAlertCircle,
-  IconBan,
+  IconChartBar,
+  IconInfoCircle,
+  IconCurrencyDollar,
+  IconListDetails,
 } from "@tabler/icons-react";
 import { twMerge } from "tailwind-merge";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { dashboardService, DashboardStats } from "@/lib/services/dashboardService";
-import Link from "next/link";
+import { dashboardService, type DashboardStats } from "@/lib/services/dashboardService";
 import {
   BarChart,
   Bar,
@@ -30,339 +25,338 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Cell
-} from 'recharts';
+  Cell,
+  PieChart,
+  Pie,
+} from "recharts";
 
 export default function DashboardPage() {
   const { t } = useLanguage();
-  const queryClient = useQueryClient();
 
-  const { data: stats, isLoading } = useQuery<DashboardStats>({
+  const { data: stats, isLoading, refetch, isRefetching } = useQuery<DashboardStats>({
     queryKey: ["dashboard-stats"],
     queryFn: dashboardService.getStats,
   });
 
+  // --------------- Derived data from API ---------------
+
+  // Revenue trend: compare last two days from revenue.analysis (7-day array)
+  const revenueTrend = React.useMemo(() => {
+    const analysis = stats?.revenue?.analysis;
+    if (!analysis || analysis.length < 2) return "Stable";
+    const last = analysis[analysis.length - 1]?.revenue ?? 0;
+    const prev = analysis[analysis.length - 2]?.revenue ?? 0;
+    if (prev === 0) return last > 0 ? "+100%" : "No change";
+    const diff = ((last - prev) / prev) * 100;
+    return `${diff >= 0 ? "+" : ""}${diff.toFixed(1)}% vs yesterday`;
+  }, [stats]);
+
+  // Total revenue across 7-day analysis window
+  const weeklyRevenue = React.useMemo(() => {
+    return stats?.revenue?.analysis?.reduce((sum, d) => sum + d.revenue, 0) ?? 0;
+  }, [stats]);
+
+  // Stat cards — mapped 1:1 to backend fields
   const statCards = [
     {
-      title: "Total Users",
-      value: stats?.users.total || 0,
-      icon: IconUsers,
-      color: "text-[#B5651D]",
-      bg: "bg-[#B5651D]/5",
-      border: "border-[#B5651D]/10",
-      trend: "+12.5% vs last month",
-    },
-    {
-      title: "Active Products",
-      value: stats?.products.approved || 0,
-      icon: IconPackage,
-      color: "text-emerald-600",
-      bg: "bg-emerald-500/5",
-      border: "border-emerald-500/10",
-      trend: "+8.2% vs last month",
-    },
-    {
-      title: "Global Categories",
-      value: stats?.categories.total || 0,
-      icon: IconCategory,
-      color: "text-blue-600",
-      bg: "bg-blue-500/5",
-      border: "border-blue-500/10",
-      trend: "+4.1% vs last month",
-    },
-    {
       title: "Today's Revenue",
-      value: `₹${(stats?.revenue.today || 0).toLocaleString()}`,
-      icon: IconWallet,
-      color: "text-amber-600",
-      bg: "bg-amber-500/5",
-      border: "border-amber-500/10",
-      trend: "+15.4% vs yesterday",
+      value: `₹ ${(stats?.revenue?.today ?? 0).toLocaleString()}`,
+      icon: IconCurrencyDollar,
+      gradient: "var(--purple-gradient-pink)",
+      trend: revenueTrend,
+    },
+    {
+      title: "Total Products",
+      value: (stats?.products?.total ?? 0).toLocaleString(),
+      icon: IconShoppingBag,
+      gradient: "var(--purple-gradient-blue)",
+      trend: `${stats?.products?.pending ?? 0} pending review`,
+    },
+    {
+      title: "Total Users",
+      value: (stats?.users?.total ?? 0).toLocaleString(),
+      icon: IconUsers,
+      gradient: "var(--purple-gradient-green)",
+      trend: "Registered platform users",
+    },
+    {
+      title: "Categories",
+      value: `${stats?.categories?.total ?? 0} + ${stats?.subcategories?.total ?? 0}`,
+      icon: IconCategory,
+      gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+      trend: `${(stats?.categories?.total ?? 0) + (stats?.subcategories?.total ?? 0)} total taxonomy items`,
     },
   ];
 
-  const productStatusStats = [
-    { label: "Approved", value: stats?.products.approved || 0, icon: IconCircleCheck, color: "text-emerald-500", bg: "bg-emerald-50" },
-    { label: "Pending", value: stats?.products.pending || 0, icon: IconClock, color: "text-amber-500", bg: "bg-amber-50" },
-    { label: "Rejected", value: stats?.products.rejected || 0, icon: IconAlertCircle, color: "text-rose-500", bg: "bg-rose-50" },
-    { label: "Inactive", value: stats?.products.inactive || 0, icon: IconBan, color: "text-gray-500", bg: "bg-gray-50" },
-  ];
+  // Product status distribution for Pie chart
+  const productDistribution = [
+    { name: "Approved", value: stats?.products?.approved ?? 0, color: "#07cdae" },
+    { name: "Pending", value: stats?.products?.pending ?? 0, color: "#fe7096" },
+    { name: "Rejected", value: stats?.products?.rejected ?? 0, color: "#90caf9" },
+    { name: "Sold", value: stats?.products?.sold ?? 0, color: "#da8cff" },
+    { name: "Inactive", value: stats?.products?.inactive ?? 0, color: "#f59e0b" },
+  ].filter((d) => d.value > 0);
 
-  const recentProducts = stats?.recentProducts || [];
-  const revenueData = stats?.revenue.analysis || [];
+  // Revenue bar chart from revenue.analysis (7 days)
+  const revenueBarData =
+    stats?.revenue?.analysis?.map((item) => ({
+      name: new Date(item.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      Revenue: item.revenue,
+    })) ?? [];
 
+  // Recent products table
+  const recentProducts = stats?.recentProducts?.slice(0, 5) ?? [];
+
+  // --------------- Loading skeleton ---------------
+  if (isLoading) {
+    return (
+      <div className="space-y-8 pb-12 font-sans max-w-[1600px] mx-auto animate-pulse select-none">
+        <div className="h-10 w-48 rounded-xl bg-slate-100" />
+        <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-44 rounded-[16px] bg-slate-100" />
+          ))}
+        </div>
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2 h-[430px] rounded-[16px] bg-slate-100" />
+          <div className="h-[430px] rounded-[16px] bg-slate-100" />
+        </div>
+        <div className="h-[320px] rounded-[16px] bg-slate-100" />
+      </div>
+    );
+  }
+
+  // --------------- Render ---------------
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-8 px-4 font-sans max-w-[1600px] mx-auto">
-      {/* Header section */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between py-2">
+    <div className="space-y-8 animate-in fade-in duration-700 pb-12 font-sans max-w-[1600px] mx-auto select-none">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between py-4">
         <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-xl bg-[#B5651D]/5 flex items-center justify-center text-[#B5651D]">
-            <IconCalendarStats size={20} />
+          <div className="h-10 w-10 rounded-xl bg-[#b66dff] flex items-center justify-center text-white shadow-lg shadow-[#b66dff]/25">
+            <IconChartBar size={22} />
           </div>
           <div>
-            <h1 className="text-lg font-bold tracking-tight text-foreground">{t("dashboard.title")}</h1>
-            <p className="text-[11px] font-medium text-muted-foreground/60">Real-time platform metrics and analysis from BOSS ecosystem.</p>
+            <h1 className="text-xl font-bold tracking-tight text-slate-800">Dashboard</h1>
+            <p className="text-[11px] font-medium text-slate-400">
+              Weekly revenue: ₹ {weeklyRevenue.toLocaleString()}
+            </p>
           </div>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] })}
-            className="h-9 w-9 flex items-center justify-center rounded-xl border border-border bg-card text-muted-foreground hover:bg-muted transition-all active:scale-95 shadow-none"
-            title="Refresh dashboard metrics"
-          >
-            <IconReload className={twMerge("h-3.5 w-3.5", isLoading && "animate-spin")} />
-          </button>
-        </div>
+        <button
+          onClick={() => refetch()}
+          disabled={isRefetching}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white shadow-sm border border-slate-100 cursor-pointer hover:bg-slate-50 transition-all text-[11px] font-bold text-slate-500 active:scale-95 disabled:opacity-50"
+        >
+          <IconReload size={14} className={twMerge("text-[#b66dff]", isRefetching && "animate-spin")} />
+          Refresh
+        </button>
       </div>
 
-      {/* Stats Grid */}
-      <section className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Stat Cards Grid */}
+      <section className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
         {statCards.map((stat, i) => (
           <div
             key={i}
-            className={twMerge(
-              "group relative overflow-hidden rounded-[2.5rem] border bg-card p-6 transition-all duration-300",
-              "hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.08)] hover:-translate-y-1",
-              stat.border
-            )}
+            className="group relative overflow-hidden rounded-[16px] p-7 text-white shadow-xl transition-all duration-500 hover:-translate-y-1"
+            style={{ background: stat.gradient }}
           >
-            <div className="flex items-center justify-between">
-              <div className={twMerge("rounded-2xl p-3 shadow-inner", stat.bg, stat.color)}>
-                <stat.icon size={26} stroke={2} />
+            <div className="relative z-10">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="text-[12px] font-bold opacity-90 uppercase tracking-wide mb-2">{stat.title}</h3>
+                  <p className="text-3xl font-black tracking-tight mb-4">{stat.value}</p>
+                </div>
+                <div className="p-2 bg-white/20 rounded-xl backdrop-blur-md">
+                  <stat.icon size={24} />
+                </div>
               </div>
-              <div className={twMerge(
-                "h-2 w-2 rounded-full",
-                isLoading ? "bg-muted animate-pulse" : "bg-emerald-400"
-              )} />
+              <p className="text-[10px] font-bold opacity-75">{stat.trend}</p>
             </div>
-
-            <div className="mt-6 space-y-1">
-              <div className="flex items-center justify-between">
-                <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 leading-none">
-                  {stat.title}
-                </h3>
-              </div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-black tracking-tighter text-foreground tabular-nums">
-                  {stat.value}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[9px] font-bold text-emerald-500 flex items-center gap-0.5">
-                  <IconTrendingUp size={10} /> {stat.trend.split(' ')[0]}
-                </span>
-                <p className="text-[9px] font-bold text-muted-foreground/30 uppercase tracking-widest leading-none">
-                  {stat.trend?.split(' ').slice(1).join(' ')}
-                </p>
-              </div>
-            </div>
-
-            <div className={twMerge(
-              "absolute -right-8 -bottom-8 h-32 w-32 rounded-full opacity-[0.05] blur-2xl transition-all duration-500 group-hover:scale-150",
-              stat.bg
-            )} />
+            <div className="absolute -right-8 -bottom-8 h-44 w-44 rounded-full bg-white/10 blur-2xl group-hover:scale-125 transition-transform duration-700" />
+            <div className="absolute -left-12 -top-12 h-44 w-44 rounded-full bg-black/5 blur-2xl" />
           </div>
         ))}
       </section>
 
+      {/* Product Status Detail Cards */}
+      <section className="grid gap-4 grid-cols-2 md:grid-cols-5">
+        {[
+          { label: "Approved", value: stats?.products?.approved ?? 0, color: "text-emerald-600", bg: "bg-emerald-50", ring: "ring-emerald-200/50" },
+          { label: "Pending", value: stats?.products?.pending ?? 0, color: "text-amber-600", bg: "bg-amber-50", ring: "ring-amber-200/50" },
+          { label: "Rejected", value: stats?.products?.rejected ?? 0, color: "text-rose-600", bg: "bg-rose-50", ring: "ring-rose-200/50" },
+          { label: "Sold", value: stats?.products?.sold ?? 0, color: "text-purple-600", bg: "bg-purple-50", ring: "ring-purple-200/50" },
+          { label: "Inactive", value: stats?.products?.inactive ?? 0, color: "text-slate-600", bg: "bg-slate-50", ring: "ring-slate-200/50" },
+        ].map((item) => (
+          <div
+            key={item.label}
+            className={twMerge("rounded-2xl p-5 ring-1", item.bg, item.ring, "transition-all hover:shadow-md")}
+          >
+            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2">{item.label}</p>
+            <p className={twMerge("text-2xl font-black tabular-nums", item.color)}>{item.value}</p>
+          </div>
+        ))}
+      </section>
+
+      {/* Charts Section */}
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Revenue Analysis Chart */}
-        <section className="lg:col-span-2 rounded-[2.5rem] border border-border bg-card p-8 shadow-sm">
+        {/* Revenue Bar Chart — revenue.analysis (7 days) */}
+        <section className="lg:col-span-2 rounded-[16px] bg-white p-8 shadow-sm border border-slate-100">
           <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-xl font-black tracking-tight text-foreground">Revenue Analysis</h2>
-              <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest mt-1">Last 7 days performance</p>
-            </div>
+            <h2 className="text-lg font-bold text-slate-800">Revenue Analysis (7 Days)</h2>
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 bg-emerald-50 px-3 py-1.5 rounded-full">
-                <div className="h-1.5 w-1.5 rounded-full bg-emerald-500"></div>
-                <span className="text-[9px] font-black uppercase tracking-wider text-emerald-700">Live Intake</span>
-              </div>
+              <div className="h-3 w-3 rounded-full bg-[#da8cff]" />
+              <span className="text-[10px] font-bold text-slate-400">Daily Revenue</span>
             </div>
           </div>
 
-          <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={revenueData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis
-                  dataKey="date"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }}
-                  dy={10}
-                  tickFormatter={(val) => new Date(val).toLocaleDateString('en-IN', { weekday: 'short' })}
-                />
-                <YAxis
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }}
-                  tickFormatter={(val) => `₹${val}`}
-                />
-                <Tooltip
-                  cursor={{ fill: '#f8fafc', radius: 12 }}
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      return (
-                        <div className="bg-white p-3 border border-border rounded-2xl shadow-xl">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">
-                            {payload[0]?.payload?.date ? new Date(payload[0].payload.date).toLocaleDateString('en-IN', { dateStyle: 'medium' }) : '---'}
-                          </p>
-                          <p className="text-lg font-black text-foreground text-emerald-600">
-                            ₹{payload[0]?.value?.toLocaleString() || '0'}
-                          </p>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-                <Bar
-                  dataKey="revenue"
-                  fill="#B5651D"
-                  radius={[10, 10, 10, 10]}
-                  barSize={40}
-                >
-                  {revenueData.map((_entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={index === revenueData.length - 1 ? '#B5651D' : '#B5651D40'}
-                      className="transition-all duration-300 hover:opacity-100"
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="h-[350px] w-full">
+            {revenueBarData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={revenueBarData} barGap={8}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis
+                    dataKey="name"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 10, fontWeight: 700, fill: "#cbd5e1" }}
+                    dy={10}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 10, fontWeight: 700, fill: "#cbd5e1" }}
+                  />
+                  <Tooltip
+                    cursor={{ fill: "#f8fafc" }}
+                    contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 30px rgba(0,0,0,0.05)" }}
+                    formatter={(value) => [`₹ ${Number(value).toLocaleString()}`, "Revenue"]}
+                  />
+                  <Bar dataKey="Revenue" fill="#da8cff" radius={[6, 6, 0, 0]} barSize={28} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-slate-300 text-sm font-bold">
+                No revenue data available
+              </div>
+            )}
           </div>
         </section>
 
-        {/* Product Status Breakdown */}
-        <section className="rounded-[2.5rem] border border-border bg-card p-8 shadow-sm h-full">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl font-black tracking-tight text-foreground">Status Breakdown</h2>
+        {/* Product Distribution Pie — products.{approved,pending,rejected,sold,inactive} */}
+        <section className="rounded-[16px] bg-white p-8 shadow-sm border border-slate-100 flex flex-col">
+          <h2 className="text-lg font-bold text-slate-800 mb-6">Product Distribution</h2>
+          <div className="flex-1 h-[250px] w-full relative">
+            {productDistribution.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={productDistribution} innerRadius={60} outerRadius={90} paddingAngle={2} dataKey="value">
+                    {productDistribution.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 30px rgba(0,0,0,0.05)" }}
+                    formatter={(value, name) => [value, name]}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-slate-300 text-sm font-bold">
+                No products yet
+              </div>
+            )}
           </div>
-          <div className="space-y-4">
-            {productStatusStats.map((item, idx) => (
-              <div key={idx} className="flex items-center justify-between p-4 rounded-2xl border border-border/40 hover:border-border transition-all group">
-                <div className="flex items-center gap-4">
-                  <div className={twMerge("h-10 w-10 rounded-xl flex items-center justify-center transition-all", item.bg, item.color)}>
-                    <item.icon size={20} stroke={2.5} />
-                  </div>
-                  <div>
-                    <span className="text-[11px] font-black uppercase tracking-widest text-foreground">{item.label}</span>
-                    <p className="text-[9px] font-bold text-muted-foreground/50">Total inventory volume</p>
-                  </div>
+          <div className="space-y-3 pt-4">
+            {productDistribution.map((item, i) => (
+              <div key={i} className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-3 w-3 rounded-full" style={{ background: item.color }} />
+                  <span className="text-[12px] font-medium text-slate-500">{item.name}</span>
                 </div>
-                <div className="text-right">
-                  <span className="text-lg font-black tracking-tight text-foreground tabular-nums">{item.value}</span>
-                  <div className="h-1 w-12 bg-muted rounded-full overflow-hidden mt-1">
-                    <div
-                      className={twMerge("h-full", item.bg.replace('/5', ''), item.color.replace('text-', 'bg-'))}
-                      style={{ width: `${stats?.products.total ? (item.value / stats.products.total) * 100 : 0}%` }}
-                    />
-                  </div>
-                </div>
+                <span className="text-[12px] font-black text-slate-600 tabular-nums">{item.value}</span>
               </div>
             ))}
           </div>
-
-          <div className="mt-8 pt-8 border-t border-border/40">
-            <div className="p-4 rounded-3xl bg-amber-500/5 border border-amber-500/10 relative overflow-hidden group">
-              <div className="relative z-10">
-                <p className="text-[9px] font-black uppercase tracking-widest text-[#B5651D] mb-1">Catalog Insight</p>
-                <p className="text-[11px] font-bold text-[#B5651D]/80 leading-relaxed">
-                  Overall catalog is <span className="font-black">{(stats?.products.total ? (stats.products.approved / stats.products.total) * 100 : 0).toFixed(1)}%</span> healthy and approved.
-                </p>
-              </div>
-              <IconShoppingBag className="absolute -right-2 -bottom-2 h-12 w-12 opacity-[0.05] group-hover:scale-110 transition-transform" />
-            </div>
-          </div>
         </section>
       </div>
 
-      <div className="grid gap-6 px-2">
-        {/* Recent Product Catalog Activity */}
-        <section className="rounded-[2.5rem] border border-border bg-card p-8 shadow-sm overflow-hidden">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-xl font-black tracking-tight text-foreground">Recent Catalog Activity</h2>
-              <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest mt-1">Latest items submitted for review</p>
-            </div>
-            <Link href="/products" className="h-8 px-4 rounded-xl bg-muted/50 border border-border text-[9px] font-black uppercase tracking-widest text-foreground hover:bg-muted transition-all flex items-center gap-2">
-              Review Board <IconArrowRight size={14} />
-            </Link>
-          </div>
-
-          <div className="relative overflow-x-auto">
-            <table className="w-full text-left border-separate border-spacing-y-2">
-              <thead>
-                <tr className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">
-                  <th className="px-4 py-2">Item Details</th>
-                  <th className="px-4 py-2">Category</th>
-                  <th className="px-4 py-2">Seller</th>
-                  <th className="px-4 py-2 text-right">Price</th>
-                  <th className="px-4 py-2 text-center">Status</th>
-                  <th className="px-4 py-2">Date</th>
+      {/* Recent Products Table — recentProducts (last 5, populated seller/category/subcategory) */}
+      <section className="rounded-[16px] bg-white p-8 shadow-sm border border-slate-100 overflow-hidden">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-lg font-bold text-slate-800">Recent Products</h2>
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            Last {recentProducts.length} entries
+          </span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-100">
+                <th className="pb-4 pr-4">Seller</th>
+                <th className="pb-4 pr-4">Product</th>
+                <th className="pb-4 pr-4">Category</th>
+                <th className="pb-4 text-center">Status</th>
+                <th className="pb-4">Created</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {recentProducts.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-12 text-center text-sm text-slate-300 font-bold">
+                    No recent products
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="text-[11px] font-bold">
-                {recentProducts.map((product) => (
-                  <tr key={product._id} className="group hover:bg-muted/30 transition-all rounded-2xl overflow-hidden">
-                    <td className="px-4 py-4 rounded-l-2xl border-y border-l border-border/30 group-hover:border-border/60 transition-all">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-muted overflow-hidden shrink-0 border border-border/40">
-                          {product.media?.[0]?.url ? (
-                            <img src={product.media[0].url} alt="" className="h-full w-full object-cover" />
-                          ) : (
-                            <div className="h-full w-full flex items-center justify-center text-muted-foreground/30">
-                              <IconPackage size={18} />
-                            </div>
-                          )}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-foreground truncate font-black">{product.name}</p>
-                          <p className="text-[8px] uppercase tracking-widest text-muted-foreground/60">{product.subcategory?.name}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 border-y border-border/30 group-hover:border-border/60 transition-all">
-                      <span className="px-2 py-0.5 rounded-md bg-muted text-[8px] font-black uppercase tracking-widest">
-                        {product.category?.name}
+              ) : (
+                recentProducts.map((product: any) => (
+                  <tr key={product._id} className="group hover:bg-slate-50/50 transition-colors">
+                    <td className="py-4 pr-4">
+                      <span className="text-[13px] font-bold text-slate-700">
+                        {product.seller?.firstName ?? "Unknown"} {product.seller?.lastName ?? ""}
                       </span>
                     </td>
-                    <td className="px-4 py-4 border-y border-border/30 group-hover:border-border/60 transition-all">
-                      <div className="flex items-center gap-2">
-                        <div className="h-6 w-6 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 text-[8px] font-black uppercase">
-                          {product.seller?.firstName?.[0]}{product.seller?.lastName?.[0]}
-                        </div>
-                        <span className="text-muted-foreground truncate">{product.seller?.firstName} {product.seller?.lastName}</span>
+                    <td className="py-4 pr-4">
+                      <span className="text-[13px] font-medium text-slate-600">{product.name ?? "Untitled"}</span>
+                    </td>
+                    <td className="py-4 pr-4">
+                      <div className="flex flex-col">
+                        <span className="text-[11px] font-bold text-slate-500">{product.category?.name ?? "—"}</span>
+                        {product.subcategory?.name && (
+                          <span className="text-[9px] font-medium text-slate-400">{product.subcategory.name}</span>
+                        )}
                       </div>
                     </td>
-                    <td className="px-4 py-4 border-y border-border/30 group-hover:border-border/60 transition-all text-right tabular-nums">
-                      <span className="font-black text-foreground">₹{product.price?.toLocaleString()}</span>
-                    </td>
-                    <td className="px-4 py-4 border-y border-border/30 group-hover:border-border/60 transition-all text-center">
-                      <div className={twMerge(
-                        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[8px] font-black uppercase tracking-wider ring-1 ring-inset",
-                        product.status === "approved" ? "bg-emerald-50 text-emerald-600 ring-emerald-500/10" :
-                          product.status === "pending" ? "bg-amber-50 text-amber-600 ring-amber-500/10" :
-                            "bg-rose-50 text-rose-600 ring-rose-500/10"
-                      )}>
-                        <div className={twMerge("h-1 w-1 rounded-full bg-current", product.status === "approved" && "animate-pulse")} />
+                    <td className="py-4 text-center">
+                      <span
+                        className={twMerge(
+                          "px-3 py-1 rounded-md text-[9px] font-black uppercase tracking-wider",
+                          product.status === "approved"
+                            ? "bg-emerald-400 text-white shadow-lg shadow-emerald-400/20"
+                            : product.status === "pending"
+                              ? "bg-amber-400 text-white shadow-lg shadow-amber-400/20"
+                              : product.status === "sold"
+                                ? "bg-purple-400 text-white shadow-lg shadow-purple-400/20"
+                                : "bg-rose-400 text-white shadow-lg shadow-rose-400/20"
+                        )}
+                      >
                         {product.status}
-                      </div>
+                      </span>
                     </td>
-                    <td className="px-4 py-4 rounded-r-2xl border-y border-r border-border/30 group-hover:border-border/60 transition-all text-muted-foreground/40 tabular-nums">
-                      {new Date(product.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                    <td className="py-4">
+                      <span className="text-[11px] font-bold text-slate-400">
+                        {new Date(product.createdAt).toLocaleDateString("en-IN", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </span>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      </div>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
   );
 }
-
