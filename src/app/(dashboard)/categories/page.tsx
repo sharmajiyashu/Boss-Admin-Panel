@@ -142,7 +142,7 @@ export default function CategoriesPage() {
       {/* Header section */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between py-2">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-[#b66dff]/10 flex items-center justify-center text-[#b66dff]">
+          <div className="h-10 w-10 rounded-xl bg-[#B5651D]/10 flex items-center justify-center text-[#B5651D]">
             <IconCategory size={22} />
           </div>
           <div>
@@ -153,7 +153,7 @@ export default function CategoriesPage() {
 
         <div className="flex items-center gap-2">
           <div className="relative group w-[220px]">
-            <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-300 group-focus-within:text-[#b66dff] transition-colors" />
+            <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-300 group-focus-within:text-[#B5651D] transition-colors" />
             <input
               type="text"
               placeholder="Search category..."
@@ -162,7 +162,7 @@ export default function CategoriesPage() {
                 setSearchTerm(e.target.value);
                 setPage(1);
               }}
-              className="h-9 w-full rounded-xl border border-slate-100 bg-white pl-9 pr-3 text-[11px] font-bold text-slate-600 outline-none focus:ring-2 focus:ring-[#b66dff]/20 shadow-sm"
+              className="h-9 w-full rounded-xl border border-slate-100 bg-white pl-9 pr-3 text-[11px] font-bold text-slate-600 outline-none focus:ring-2 focus:ring-[#B5651D]/20 shadow-sm"
             />
           </div>
 
@@ -178,7 +178,7 @@ export default function CategoriesPage() {
           <button
             type="button"
             onClick={() => setIsAddOpen(true)}
-            className="h-9 px-4 rounded-xl bg-gradient-to-r from-[#da8cff] to-[#9a55ff] text-white text-[11px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-[#b66dff]/20 hover:opacity-90 active:scale-95 transition-all outline-none border-none"
+            className="h-9 px-4 rounded-xl bg-[linear-gradient(268.96deg,#B5651D_0.19%,#FE9738_99.72%)] text-white text-[11px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-[#B5651D]/20 hover:opacity-90 active:scale-95 transition-all outline-none border-none"
           >
             <IconPlus size={16} stroke={3} />
             Add New
@@ -190,7 +190,7 @@ export default function CategoriesPage() {
       <div className="min-h-[400px]">
         {isLoading ? (
           <div className="flex h-64 flex-col items-center justify-center gap-3 rounded-2xl bg-white shadow-sm border border-slate-100">
-            <IconLoader2 className="h-8 w-8 animate-spin text-[#b66dff]/20" />
+            <IconLoader2 className="h-8 w-8 animate-spin text-[#B5651D]/20" />
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Loading categories...</p>
           </div>
         ) : categories.length === 0 ? (
@@ -241,7 +241,7 @@ export default function CategoriesPage() {
                           <div className="flex items-center justify-end gap-1.5">
                             <button
                               onClick={() => handleEdit(category)}
-                              className="h-8 w-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-white hover:text-[#b66dff] border border-transparent hover:border-slate-100 transition-all shadow-none hover:shadow-sm"
+                              className="h-8 w-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-white hover:text-[#B5651D] border border-transparent hover:border-slate-100 transition-all shadow-none hover:shadow-sm"
                               title="Edit"
                             >
                               <IconEdit size={14} />
@@ -300,7 +300,7 @@ export default function CategoriesPage() {
                   <div className="flex gap-2 pt-2">
                     <button
                       onClick={() => handleEdit(category)}
-                      className="flex-1 h-9 rounded-xl bg-slate-50 text-[10px] font-bold text-slate-600 hover:bg-[#b66dff] hover:text-white transition-all flex items-center justify-center gap-2"
+                      className="flex-1 h-9 rounded-xl bg-slate-50 text-[10px] font-bold text-slate-600 hover:bg-[#B5651D] hover:text-white transition-all flex items-center justify-center gap-2"
                     >
                       <IconEdit size={14} />
                       Edit
@@ -350,8 +350,8 @@ export default function CategoriesPage() {
                         className={twMerge(
                           "h-8 min-w-[32px] rounded-xl px-2 text-[11px] font-bold transition-all",
                           page === p
-                            ? "bg-gradient-to-r from-[#da8cff] to-[#9a55ff] text-white shadow-lg shadow-[#b66dff]/20"
-                            : "text-slate-400 ring-1 ring-transparent hover:bg-white hover:text-[#b66dff] hover:ring-slate-100"
+                            ? "bg-[linear-gradient(268.96deg,#B5651D_0.19%,#FE9738_99.72%)] text-white shadow-lg shadow-[#B5651D]/20"
+                            : "text-slate-400 ring-1 ring-transparent hover:bg-white hover:text-[#B5651D] hover:ring-slate-100"
                         )}
                       >
                         {p}
@@ -378,7 +378,7 @@ export default function CategoriesPage() {
           <Dialog.Content className="fixed left-[50%] top-[45%] z-50 w-full max-w-sm translate-x-[-50%] translate-y-[-50%] overflow-hidden rounded-2xl border-0 bg-white p-6 shadow-2xl outline-none ring-1 ring-slate-100 animate-in zoom-in-95 fade-in duration-200">
             <div className="flex items-center justify-between mb-5">
               <Dialog.Title className="text-sm font-bold flex items-center gap-2">
-                <div className="h-7 w-7 rounded-lg bg-[#b66dff]/10 flex items-center justify-center text-[#b66dff]">
+                <div className="h-7 w-7 rounded-lg bg-[#B5651D]/10 flex items-center justify-center text-[#B5651D]">
                   {selectedCategory ? <IconEdit size={14} /> : <IconPlus size={14} />}
                 </div>
                 {selectedCategory ? "Update Category" : "New Category"}
@@ -412,7 +412,7 @@ export default function CategoriesPage() {
                   placeholder="Enter category name"
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  className="h-10 w-full rounded-xl border border-slate-100 bg-white px-3 text-[11px] font-bold text-slate-600 outline-none focus:ring-2 focus:ring-[#b66dff]/20 shadow-sm"
+                  className="h-10 w-full rounded-xl border border-slate-100 bg-white px-3 text-[11px] font-bold text-slate-600 outline-none focus:ring-2 focus:ring-[#B5651D]/20 shadow-sm"
                 />
               </div>
 
@@ -422,7 +422,7 @@ export default function CategoriesPage() {
                   placeholder="Classification details..."
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  className="min-h-[90px] w-full resize-none rounded-xl border border-slate-100 bg-white p-3 text-[11px] font-medium text-slate-600 outline-none focus:ring-2 focus:ring-[#b66dff]/20 shadow-sm"
+                  className="min-h-[90px] w-full resize-none rounded-xl border border-slate-100 bg-white p-3 text-[11px] font-medium text-slate-600 outline-none focus:ring-2 focus:ring-[#B5651D]/20 shadow-sm"
                 />
               </div>
 
@@ -437,7 +437,7 @@ export default function CategoriesPage() {
                       className={twMerge(
                         "h-10 rounded-xl text-[10px] font-black uppercase tracking-widest ring-1 ring-inset transition-all",
                         formData.status === s
-                          ? "bg-[#b66dff] text-white shadow-lg shadow-[#b66dff]/20 ring-transparent"
+                          ? "bg-[#B5651D] text-white shadow-lg shadow-[#B5651D]/20 ring-transparent"
                           : "text-slate-400 bg-white ring-slate-100 hover:bg-slate-50"
                       )}
                     >
@@ -451,7 +451,7 @@ export default function CategoriesPage() {
                 <button
                   type="submit"
                   disabled={createMutation.isPending || updateMutation.isPending}
-                  className="h-11 w-full rounded-xl bg-gradient-to-r from-[#da8cff] to-[#9a55ff] text-[11px] font-black uppercase tracking-widest text-white shadow-lg shadow-[#b66dff]/20 hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="h-11 w-full rounded-xl bg-[linear-gradient(268.96deg,#B5651D_0.19%,#FE9738_99.72%)] text-[11px] font-black uppercase tracking-widest text-white shadow-lg shadow-[#B5651D]/20 hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {createMutation.isPending || updateMutation.isPending ? (
                     <IconLoader2 size={16} className="animate-spin" />

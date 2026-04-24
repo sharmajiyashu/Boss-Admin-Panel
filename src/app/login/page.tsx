@@ -73,7 +73,7 @@ export default function LoginPage() {
               <div className="mb-5 w-28 p-1">
                 <Image
                   src="/logo.svg"
-                  alt="BOSS Logo"
+                  alt="Bos Logo"
                   width={112}
                   height={36}
                   className="w-full h-auto object-contain transition-all duration-300 hover:scale-105"
@@ -81,7 +81,7 @@ export default function LoginPage() {
                 />
               </div>
               <h1 className="text-2xl font-black tracking-tight text-foreground">
-                BOSS Admin Panel
+                Bos Admin Panel
               </h1>
               <p className="mt-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground/60">
                 Manage your administrative workspace

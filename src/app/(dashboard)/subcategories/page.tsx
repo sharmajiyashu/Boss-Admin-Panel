@@ -283,7 +283,7 @@ export default function SubcategoriesPage() {
       {/* Header section identical to categories */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between py-2">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-[#b66dff]/10 flex items-center justify-center text-[#b66dff]">
+          <div className="h-10 w-10 rounded-xl bg-[#B5651D]/10 flex items-center justify-center text-[#B5651D]">
             <IconHierarchy size={22} />
           </div>
           <div>
@@ -338,7 +338,7 @@ export default function SubcategoriesPage() {
           <button
             type="button"
             onClick={openNewDialog}
-            className="h-9 px-4 rounded-xl bg-gradient-to-r from-[#da8cff] to-[#9a55ff] text-white text-[11px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-[#b66dff]/20 hover:opacity-90 active:scale-95 transition-all outline-none border-none"
+            className="h-9 px-4 rounded-xl bg-[linear-gradient(268.96deg,#B5651D_0.19%,#FE9738_99.72%)] text-white text-[11px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-[#B5651D]/20 hover:opacity-90 active:scale-95 transition-all outline-none border-none"
           >
             <IconPlus size={16} stroke={3} />
             Add New
@@ -560,8 +560,8 @@ export default function SubcategoriesPage() {
                         className={twMerge(
                           "h-8 min-w-[32px] rounded-xl px-2 text-[11px] font-bold transition-all",
                           page === p
-                            ? "bg-gradient-to-r from-[#da8cff] to-[#9a55ff] text-white shadow-lg shadow-[#b66dff]/20 animate-in zoom-in-90"
-                            : "text-muted-foreground ring-1 ring-transparent hover:bg-card hover:text-[#b66dff] hover:ring-black/[0.06]"
+                            ? "bg-[linear-gradient(268.96deg,#B5651D_0.19%,#FE9738_99.72%)] text-white shadow-lg shadow-[#B5651D]/20 animate-in zoom-in-90"
+                            : "text-muted-foreground ring-1 ring-transparent hover:bg-card hover:text-[#B5651D] hover:ring-black/[0.06]"
                         )}
                       >
                         {p}

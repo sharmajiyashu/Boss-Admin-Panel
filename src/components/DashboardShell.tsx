@@ -5,13 +5,8 @@ import { DashboardSidebar } from "@/components/DashboardSidebar";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import {
   IconChevronDown,
-  IconLayoutSidebarLeftCollapse,
   IconLayoutSidebarLeftExpand,
   IconLogout,
-  IconSearch,
-  IconMaximize,
-  IconBell,
-  IconMail,
 } from "@tabler/icons-react";
 import { usePathname, useRouter } from "next/navigation";
 import { clearToken, getAuthUser, type AuthUser } from "@/lib/api";
@@ -82,8 +77,8 @@ export function DashboardShell({
     <div className="flex h-screen overflow-hidden bg-[#F8FAFC]">
       {/* Mobile Overlay */}
       {isMobile && sidebarOpen && (
-        <div 
-          className="fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-500" 
+        <div
+          className="fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-500"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -114,33 +109,9 @@ export function DashboardShell({
             >
               <IconLayoutSidebarLeftExpand className="h-5 w-5" />
             </button>
-            
-            <div className="hidden lg:flex items-center gap-3 flex-1 max-w-md">
-               <IconSearch size={16} className="text-slate-300" />
-               <input 
-                  type="text" 
-                  placeholder="Search projects" 
-                  className="bg-transparent border-none outline-none text-[13px] font-bold text-slate-600 placeholder:text-slate-300 w-full"
-               />
-            </div>
           </div>
 
-          <div className="flex items-center gap-4 lg:gap-6">
-            {/* Global Actions */}
-            <div className="hidden sm:flex items-center gap-5 mr-4 border-r border-slate-100 pr-6">
-               <button className="text-slate-400 hover:text-slate-900 transition-colors">
-                  <IconMaximize size={18} />
-               </button>
-               <button className="text-slate-400 hover:text-slate-900 transition-colors relative">
-                  <IconMail size={18} />
-                  <div className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-[#ffbf96] border-2 border-white" />
-               </button>
-               <button className="text-slate-400 hover:text-slate-900 transition-colors relative">
-                  <IconBell size={18} />
-                  <div className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-[#fe7096] border-2 border-white" />
-               </button>
-            </div>
-
+          <div className="flex items-center">
             {/* User Profile Dropdown */}
             <DropdownMenu.Root>
               <DropdownMenu.Trigger

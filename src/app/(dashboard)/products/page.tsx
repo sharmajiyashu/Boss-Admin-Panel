@@ -103,7 +103,7 @@ export default function ProductsPage() {
               <IconPackage size={20} />
             </div>
             <div>
-              <h1 className="text-lg font-bold tracking-tight text-foreground">Product Moderation</h1>
+              <h1 className="text-lg font-bold tracking-tight text-foreground">Listings</h1>
               <p className="text-[11px] font-medium text-muted-foreground/60">Review and approve seller listings before they go live safely.</p>
             </div>
           </div>
@@ -517,7 +517,7 @@ export default function ProductsPage() {
                             {selectedProduct.category.name}
                           </span>
                           {selectedProduct.subcategory && (
-                            <span className="px-3 py-1.5 rounded-xl bg-purple-50 text-purple-700 text-[10px] font-black uppercase tracking-widest ring-1 ring-purple-100">
+                            <span className="px-3 py-1.5 rounded-xl bg-amber-50 text-amber-700 text-[10px] font-black uppercase tracking-widest ring-1 ring-amber-100">
                               {selectedProduct.subcategory.name}
                             </span>
                           )}

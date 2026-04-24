@@ -9,8 +9,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "BOSS Admin Panel",
-  description: "BOSS Admin Panel - Management and Monitoring",
+  title: "Bos Admin Panel",
+  description: "Bos Admin Panel - Management and Monitoring",
   icons: {
     icon: "/logo.svg",
     shortcut: "/logo.svg",

@@ -62,28 +62,28 @@ export default function DashboardPage() {
       title: "Today's Revenue",
       value: `₹ ${(stats?.revenue?.today ?? 0).toLocaleString()}`,
       icon: IconCurrencyDollar,
-      gradient: "var(--purple-gradient-pink)",
+      gradient: "var(--brand-gradient-pink)",
       trend: revenueTrend,
     },
     {
       title: "Total Products",
       value: (stats?.products?.total ?? 0).toLocaleString(),
       icon: IconShoppingBag,
-      gradient: "var(--purple-gradient-blue)",
+      gradient: "var(--brand-gradient-blue)",
       trend: `${stats?.products?.pending ?? 0} pending review`,
     },
     {
       title: "Total Users",
       value: (stats?.users?.total ?? 0).toLocaleString(),
       icon: IconUsers,
-      gradient: "var(--purple-gradient-green)",
+      gradient: "var(--brand-gradient-green)",
       trend: "Registered platform users",
     },
     {
       title: "Categories",
       value: `${stats?.categories?.total ?? 0} + ${stats?.subcategories?.total ?? 0}`,
       icon: IconCategory,
-      gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+      gradient: "var(--brand-gradient-primary)",
       trend: `${(stats?.categories?.total ?? 0) + (stats?.subcategories?.total ?? 0)} total taxonomy items`,
     },
   ];
@@ -93,7 +93,7 @@ export default function DashboardPage() {
     { name: "Approved", value: stats?.products?.approved ?? 0, color: "#07cdae" },
     { name: "Pending", value: stats?.products?.pending ?? 0, color: "#fe7096" },
     { name: "Rejected", value: stats?.products?.rejected ?? 0, color: "#90caf9" },
-    { name: "Sold", value: stats?.products?.sold ?? 0, color: "#da8cff" },
+    { name: "Sold", value: stats?.products?.sold ?? 0, color: "#FE9738" },
     { name: "Inactive", value: stats?.products?.inactive ?? 0, color: "#f59e0b" },
   ].filter((d) => d.value > 0);
 
@@ -132,7 +132,7 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between py-4">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-[#b66dff] flex items-center justify-center text-white shadow-lg shadow-[#b66dff]/25">
+          <div className="h-10 w-10 rounded-xl bg-[#B5651D] flex items-center justify-center text-white shadow-lg shadow-[#B5651D]/25">
             <IconChartBar size={22} />
           </div>
           <div>
@@ -147,7 +147,7 @@ export default function DashboardPage() {
           disabled={isRefetching}
           className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white shadow-sm border border-slate-100 cursor-pointer hover:bg-slate-50 transition-all text-[11px] font-bold text-slate-500 active:scale-95 disabled:opacity-50"
         >
-          <IconReload size={14} className={twMerge("text-[#b66dff]", isRefetching && "animate-spin")} />
+          <IconReload size={14} className={twMerge("text-[#B5651D]", isRefetching && "animate-spin")} />
           Refresh
         </button>
       </div>
@@ -184,7 +184,7 @@ export default function DashboardPage() {
           { label: "Approved", value: stats?.products?.approved ?? 0, color: "text-emerald-600", bg: "bg-emerald-50", ring: "ring-emerald-200/50" },
           { label: "Pending", value: stats?.products?.pending ?? 0, color: "text-amber-600", bg: "bg-amber-50", ring: "ring-amber-200/50" },
           { label: "Rejected", value: stats?.products?.rejected ?? 0, color: "text-rose-600", bg: "bg-rose-50", ring: "ring-rose-200/50" },
-          { label: "Sold", value: stats?.products?.sold ?? 0, color: "text-purple-600", bg: "bg-purple-50", ring: "ring-purple-200/50" },
+          { label: "Sold", value: stats?.products?.sold ?? 0, color: "text-amber-600", bg: "bg-amber-50", ring: "ring-amber-200/50" },
           { label: "Inactive", value: stats?.products?.inactive ?? 0, color: "text-slate-600", bg: "bg-slate-50", ring: "ring-slate-200/50" },
         ].map((item) => (
           <div
@@ -204,7 +204,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-lg font-bold text-slate-800">Revenue Analysis (7 Days)</h2>
             <div className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded-full bg-[#da8cff]" />
+              <div className="h-3 w-3 rounded-full bg-[#FE9738]" />
               <span className="text-[10px] font-bold text-slate-400">Daily Revenue</span>
             </div>
           </div>
@@ -231,7 +231,7 @@ export default function DashboardPage() {
                     contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 30px rgba(0,0,0,0.05)" }}
                     formatter={(value) => [`₹ ${Number(value).toLocaleString()}`, "Revenue"]}
                   />
-                  <Bar dataKey="Revenue" fill="#da8cff" radius={[6, 6, 0, 0]} barSize={28} />
+                  <Bar dataKey="Revenue" fill="#FE9738" radius={[6, 6, 0, 0]} barSize={28} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -334,7 +334,7 @@ export default function DashboardPage() {
                             : product.status === "pending"
                               ? "bg-amber-400 text-white shadow-lg shadow-amber-400/20"
                               : product.status === "sold"
-                                ? "bg-purple-400 text-white shadow-lg shadow-purple-400/20"
+                                ? "bg-amber-400 text-white shadow-lg shadow-amber-400/20"
                                 : "bg-rose-400 text-white shadow-lg shadow-rose-400/20"
                         )}
                       >

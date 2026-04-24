@@ -18,10 +18,10 @@
   --border: hsl(214, 32%, 91%);
   --input: hsl(214, 32%, 91%);
 
-  --primary: #9a55ff;
+  --primary: #B5651D;
   --primary-foreground: hsl(0, 0%, 100%);
 
-  --secondary: #da8cff;
+  --secondary: #FE9738;
   --secondary-foreground: hsl(222, 47%, 11%);
 
   --accent: hsl(210, 40%, 96%);
@@ -30,7 +30,7 @@
   --destructive: hsl(0, 84%, 60%);
   --destructive-foreground: hsl(0, 0%, 100%);
 
-  --ring: #9a55ff;
+  --ring: #B5651D;
   --radius: 1rem;
 
   /* Sidebar: White & Clean */
@@ -38,11 +38,11 @@
   --sidebar-foreground: hsl(222, 47%, 11%);
   --sidebar-background: hsl(0, 0%, 100%);
   --sidebar-border: hsl(214, 32%, 91%);
-  --sidebar-primary: #9a55ff;
+  --sidebar-primary: #B5651D;
   --sidebar-primary-foreground: hsl(0, 0%, 100%);
   --sidebar-accent: hsl(210, 40%, 96%);
   --sidebar-accent-foreground: hsl(222, 47%, 11%);
-  --sidebar-ring: #9a55ff;
+  --sidebar-ring: #B5651D;
 
   /* Custom medical theme colors (retained for compatibility) */
   --medical-blue: hsl(222, 47%, 11%);
@@ -51,12 +51,12 @@
   --warning-amber: hsl(43, 96%, 56%);
   --error-red: hsl(0, 84%, 60%);
 
-  /* Purple Admin Palette */
-  --purple-primary: #b66dff;
-  --purple-gradient-pink: linear-gradient(to right, #ffbf96, #fe7096);
-  --purple-gradient-blue: linear-gradient(to right, #90caf9, #047edf);
-  --purple-gradient-green: linear-gradient(to right, #84d9d2, #07cdae);
-  --purple-gradient-primary: linear-gradient(to right, #da8cff, #9a55ff);
+  /* Brand Admin Palette */
+  --brand-primary: #B5651D;
+  --brand-gradient-pink: linear-gradient(to right, #ffbf96, #fe7096);
+  --brand-gradient-blue: linear-gradient(to right, #90caf9, #047edf);
+  --brand-gradient-green: linear-gradient(to right, #84d9d2, #07cdae);
+  --brand-gradient-primary: linear-gradient(268.96deg, #B5651D 0.19%, #FE9738 99.72%);
 }
 
 @layer base {
