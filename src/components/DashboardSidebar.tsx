@@ -46,13 +46,13 @@ export function DashboardSidebar({ isCollapsed = false }: { isCollapsed?: boolea
 
          {/* Navigation Section */}
          <nav className="flex-1 space-y-1 px-3 py-6 overflow-y-auto no-scrollbar">
-            {sidebarNav.map((item) => {
+            {sidebarNav.map((item, index) => {
                const hasItems = isNavSection(item);
                const Icon = item.icon;
-               const href = item.href;
                const titleKey = item.titleKey;
 
                if (!hasItems) {
+                  const href = item.href;
                   const isActive = pathname === href;
 
                   return (
@@ -86,8 +86,50 @@ export function DashboardSidebar({ isCollapsed = false }: { isCollapsed?: boolea
                         )}
                      </Link>
                   );
+               } else {
+                  return (
+                    <div key={titleKey} className="space-y-1">
+                      {!isCollapsed && (
+                        <div className="px-5 pt-4 pb-2">
+                          <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400/80">
+                            {t(titleKey)}
+                          </p>
+                        </div>
+                      )}
+                      {item.items.map((subItem) => {
+                        const SubIcon = subItem.icon;
+                        const isActive = pathname === subItem.href;
+                        return (
+                          <Link
+                            key={subItem.href}
+                            href={subItem.href}
+                            className={twMerge(
+                              "group relative flex items-center gap-4 rounded-xl px-5 py-3 text-[13px] font-bold transition-all duration-300",
+                              isActive
+                                ? "text-[#B5651D]"
+                                : "text-slate-600 hover:text-[#B5651D]"
+                            )}
+                          >
+                            {SubIcon && (
+                              <SubIcon
+                                className={twMerge(
+                                  "h-4 w-4 shrink-0 transition-all",
+                                  isActive ? "text-[#B5651D]" : "text-slate-400 group-hover:text-[#B5651D]"
+                                )}
+                              />
+                            )}
+                            {!isCollapsed && (
+                              <span className="flex-1 animate-in fade-in slide-in-from-left-2 duration-500">{t(subItem.titleKey)}</span>
+                            )}
+                            {isActive && !isCollapsed && (
+                               <div className="h-1 w-1 rounded-full bg-[#B5651D]" />
+                            )}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  );
                }
-               return null;
             })}
          </nav>
 

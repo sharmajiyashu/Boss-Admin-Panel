@@ -1,3 +1,4 @@
+import React from "react";
 import {
   IconLayoutDashboard,
   IconCategory,
@@ -5,6 +6,9 @@ import {
   IconPackage,
   IconUsers,
   IconSettings,
+  IconMapPin,
+  IconBuildingCommunity,
+  IconWorld
 } from "@tabler/icons-react";
 
 export interface SidebarNavItem {
@@ -15,25 +19,30 @@ export interface SidebarNavItem {
 
 export interface SidebarNavSection {
   titleKey: string;
-  href: string;
   items: SidebarNavItem[];
   icon?: React.ElementType;
 }
 
-export type SidebarNavEntry = SidebarNavItem | SidebarNavSection;
+export type SidebarNavItemType = SidebarNavItem | SidebarNavSection;
 
-export function isNavSection(
-  item: SidebarNavEntry
-): item is SidebarNavSection {
-  return "items" in item && Array.isArray((item as SidebarNavSection).items);
+export function isNavSection(item: SidebarNavItemType): item is SidebarNavSection {
+  return "items" in item;
 }
 
-/** Sidebar navigation config for BOSS Admin Panel. titleKey matches i18n messages. */
-export const sidebarNav: SidebarNavEntry[] = [
-  { titleKey: "nav.dashboard", href: "/dashboard", icon: IconLayoutDashboard },
+export const sidebarNav: SidebarNavItemType[] = [
+  { titleKey: "nav.dashboard", href: "/", icon: IconLayoutDashboard },
   { titleKey: "nav.categories", href: "/categories", icon: IconCategory },
   { titleKey: "nav.subcategories", href: "/subcategories", icon: IconHierarchy },
   { titleKey: "nav.products", href: "/products", icon: IconPackage },
   { titleKey: "nav.users", href: "/users", icon: IconUsers },
+  {
+    titleKey: "nav.locationManagement",
+    icon: IconWorld,
+    items: [
+      { titleKey: "nav.countries", href: "/countries", icon: IconWorld },
+      { titleKey: "nav.states", href: "/states", icon: IconMapPin },
+      { titleKey: "nav.cities", href: "/cities", icon: IconBuildingCommunity },
+    ],
+  },
   { titleKey: "nav.settings", href: "/settings", icon: IconSettings },
 ];

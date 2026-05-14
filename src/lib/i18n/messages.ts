@@ -47,6 +47,10 @@ export const messages: Record<Locale, Record<string, string>> = {
     "nav.subcategories": "Subcategories",
     "nav.products": "Listings",
     "nav.users": "Users",
+    "nav.locationManagement": "Location Management",
+    "nav.countries": "Countries",
+    "nav.states": "States",
+    "nav.cities": "Cities",
     "nav.settings": "App Settings",
 
 
@@ -97,6 +101,10 @@ export const messages: Record<Locale, Record<string, string>> = {
     "nav.subscriptions": "ការជាវ",
     "nav.enquiries": "ការសាកសួរ",
     "nav.reports": "របាយការណ៍",
+    "nav.locationManagement": "ការគ្រប់គ្រងទីតាំង",
+    "nav.countries": "ប្រទេស",
+    "nav.states": "រដ្ឋ",
+    "nav.cities": "ទីក្រុង",
     "userDetails.location": "Location",
     "userDetails.searchingFor": "Searching for",
     "userDetails.connectionType": "Connection type",

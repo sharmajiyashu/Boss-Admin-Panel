@@ -342,3 +342,56 @@ export function getCurrentLocationId(): number | null {
   const first = Array.isArray(locations) && locations.length > 0 ? locations[0] : undefined;
   return first && typeof first.id === "number" ? first.id : null;
 }
+
+export interface Country {
+  _id: string;
+  name: string;
+  iso2: string;
+  iso3: string;
+  isActive: boolean;
+}
+
+export interface State {
+  _id: string;
+  name: string;
+  code: string;
+  countryId: string | Country;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface City {
+  _id: string;
+  name: string;
+  stateId: string | State;
+  countryId: string | Country;
+  latitude: number;
+  longitude: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const countryApi = {
+  getCountries: (params?: { page?: number; limit?: number; search?: string; isActive?: boolean }) =>
+    get<any>('/countries', { params }),
+  createCountry: (data: Partial<Country>) =>
+    post<Country>('/countries', data),
+  updateCountry: (id: string, data: Partial<Country>) =>
+    put<Country>(`/countries/${id}`, data),
+  deleteCountry: (id: string) =>
+    deleteRequest<void>(`/countries/${id}`),
+};
+
+export const locationApi = {
+  getStates: (params?: any) => get<any>("/states", { params }),
+  createState: (data: any) => post<State>("/states", data),
+  updateState: (id: string, data: any) => put<State>(`/states/${id}`, data),
+  deleteState: (id: string) => deleteRequest(`/states/${id}`),
+
+  getCities: (params?: any) => get<any>("/cities", { params }),
+  createCity: (data: any) => post<City>("/cities", data),
+  updateCity: (id: string, data: any) => put<City>(`/cities/${id}`, data),
+  deleteCity: (id: string) => deleteRequest(`/cities/${id}`),
+};
