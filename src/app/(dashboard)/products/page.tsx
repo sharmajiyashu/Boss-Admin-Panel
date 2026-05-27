@@ -96,42 +96,34 @@ export default function ProductsPage() {
 
   return (
     <>
-      <div className="space-y-6 animate-in fade-in duration-500 pb-8 px-4 font-sans">
+      <div className="space-y-6 animate-in fade-in duration-300 pb-8 font-sans">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between py-2">
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-[#B5651D]/5 flex items-center justify-center text-[#B5651D]">
-              <IconPackage size={20} />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold tracking-tight text-foreground">Listings</h1>
-              <p className="text-[11px] font-medium text-muted-foreground/60">Review and approve seller listings before they go live safely.</p>
-            </div>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-foreground">Listings</h1>
+            <p className="mt-1 text-sm font-medium text-muted-foreground">
+              Review and approve seller listings before they go live safely.
+            </p>
+          </div>
+        </div>
+
+        {/* Filter Panel */}
+        <div className="flex flex-col gap-4 p-4 rounded-2xl border border-border bg-white shadow-sm sm:flex-row sm:items-center">
+          <div className="relative flex-1">
+            <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/40" />
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setPage(1);
+              }}
+              className="h-10 w-full rounded-xl border border-border bg-muted/10 pl-9 pr-4 text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-[#B5651D]/25 focus:border-[#B5651D]/40"
+            />
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="relative group flex-1 sm:flex-none">
-              <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/30 group-focus-within:text-[#B5651D] transition-colors" />
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setPage(1);
-                }}
-                className="h-9 w-full sm:w-64 rounded-xl border border-border/50 bg-card/40 pl-9 pr-4 text-[11px] font-medium transition-all focus:border-[#B5651D]/50 focus:ring-4 focus:ring-[#B5651D]/5 outline-none"
-              />
-            </div>
-
-            <button
-              onClick={() => refetch()}
-              disabled={isLoading || isRefetching}
-              className="h-9 w-9 flex items-center justify-center rounded-xl border border-border/50 bg-card/40 text-muted-foreground hover:text-[#B5651D] transition-all disabled:opacity-50 active:scale-95"
-            >
-              <IconReload size={16} className={twMerge((isLoading || isRefetching) && "animate-spin")} />
-            </button>
-
-            <div className="flex items-center gap-1.5 bg-card/40 p-1.5 rounded-2xl border border-border/50 overflow-x-auto max-w-full no-scrollbar shadow-inner">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1.5 bg-muted/20 p-1.5 rounded-xl border border-border/50 overflow-x-auto max-w-full no-scrollbar shadow-inner">
               {[
                 { id: "all", label: "All Items", icon: IconStack2 },
                 { id: "pending", label: "Moderation", icon: IconClockHour4 },
@@ -146,17 +138,25 @@ export default function ProductsPage() {
                     setPage(1);
                   }}
                   className={twMerge(
-                    "h-9 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex items-center gap-2",
+                    "h-8 px-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex items-center gap-1.5",
                     statusFilter === tab.id
-                      ? "bg-foreground text-background shadow-lg"
+                      ? "bg-foreground text-background shadow-sm"
                       : "text-muted-foreground hover:bg-muted"
                   )}
                 >
-                  <tab.icon size={14} stroke={2.5} />
+                  <tab.icon size={12} stroke={2.5} />
                   {tab.label}
                 </button>
               ))}
             </div>
+
+            <button
+              onClick={() => refetch()}
+              disabled={isLoading || isRefetching}
+              className="h-10 w-10 flex items-center justify-center rounded-xl border border-border bg-white text-muted-foreground hover:text-[#B5651D] transition-all disabled:opacity-50 active:scale-95 shadow-sm"
+            >
+              <IconReload size={16} className={twMerge((isLoading || isRefetching) && "animate-spin")} />
+            </button>
           </div>
         </div>
 
@@ -367,7 +367,7 @@ export default function ProductsPage() {
 
         {/* Premium Floating Pagination Bar */}
         {totalPages > 1 && (
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-card/60 backdrop-blur-md shadow-[0_-1px_10px_rgba(0,0,0,0.02)] ring-1 ring-black/[0.04]">
+          <div className="pagination-container">
             <div className="text-[10px] font-extrabold text-muted-foreground/40 uppercase tracking-widest">
               Records {((page - 1) * limit) + 1} — {Math.min(page * limit, total)} <span className="mx-2 opacity-50">/</span> TOTAL {total}
             </div>

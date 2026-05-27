@@ -6,6 +6,7 @@ import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import {
   IconChevronDown,
   IconLayoutSidebarLeftExpand,
+  IconLayoutSidebarLeftCollapse,
   IconLogout,
 } from "@tabler/icons-react";
 import { usePathname, useRouter } from "next/navigation";
@@ -74,7 +75,7 @@ export function DashboardShell({
   }, [pathname, isMobile]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#F8FAFC]">
+    <div className="flex h-screen overflow-hidden bg-background">
       {/* Mobile Overlay */}
       {isMobile && sidebarOpen && (
         <div
@@ -91,7 +92,7 @@ export function DashboardShell({
         )}
       >
         <div className={twMerge(
-          "h-full overflow-hidden border-r border-slate-200 bg-white transition-all duration-500",
+          "h-full overflow-hidden border-r border-sidebar-border bg-sidebar transition-all duration-500",
           sidebarOpen ? "w-[280px]" : "w-[80px]"
         )}>
           <DashboardSidebar isCollapsed={!sidebarOpen && !isMobile} />
@@ -99,15 +100,19 @@ export function DashboardShell({
       </aside>
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center justify-between gap-4 border-b border-slate-100 bg-white px-4 sm:px-8 transition-all shadow-sm">
-          <div className="flex items-center gap-6 flex-1">
+        <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center justify-between gap-4 border-b border-border bg-card px-4 sm:px-6 shadow-sm">
+          <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl text-slate-400 transition-all hover:bg-slate-50 hover:text-slate-900 active:scale-95 outline-none"
+              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
               aria-label={sidebarOpen ? t("common.hideSidebar") : t("common.showSidebar")}
             >
-              <IconLayoutSidebarLeftExpand className="h-5 w-5" />
+              {sidebarOpen ? (
+                <IconLayoutSidebarLeftCollapse className="h-5 w-5" aria-hidden />
+              ) : (
+                <IconLayoutSidebarLeftExpand className="h-5 w-5" aria-hidden />
+              )}
             </button>
           </div>
 
@@ -115,38 +120,37 @@ export function DashboardShell({
             {/* User Profile Dropdown */}
             <DropdownMenu.Root>
               <DropdownMenu.Trigger
-                className="flex cursor-pointer items-center gap-3 rounded-2xl bg-white px-2 py-1.5 text-[13px] font-bold text-slate-700 transition-all hover:bg-slate-50 outline-none active:scale-95 group"
+                className="flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-card-foreground transition-colors hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 data-[state=open]:bg-muted"
+                aria-label={t("header.userMenu")}
               >
-                <div className="h-8 w-8 rounded-full ring-2 ring-slate-100 shadow-sm overflow-hidden flex items-center justify-center bg-slate-50">
-                  <img src={authUser?.clinic?.clinicLogo?.url || "https://i.pravatar.cc/150"} alt="" className="h-full w-full object-cover" />
-                </div>
-                <span className="hidden md:block max-w-[120px] truncate leading-none">
-                  {authUser?.name || "David Greym..."}
+                <span className="max-w-[140px] truncate sm:max-w-[180px]">
+                  {displayName(authUser)}
                 </span>
-                <IconChevronDown className="h-3.5 w-3.5 shrink-0 opacity-20 group-hover:opacity-100 transition-opacity" />
+                <IconChevronDown className="h-4 w-4 shrink-0 opacity-60" aria-hidden />
               </DropdownMenu.Trigger>
               <DropdownMenu.Portal>
                 <DropdownMenu.Content
-                  className="min-w-[240px] rounded-[24px] border-0 bg-white p-2 shadow-2xl shadow-slate-200 ring-1 ring-slate-200 animate-in zoom-in-95 slide-in-from-top-2 fade-in duration-300 z-[100]"
-                  sideOffset={8}
+                  className="min-w-[180px] rounded-lg border border-border bg-background p-1 shadow-lg z-[100]"
+                  sideOffset={6}
                   align="end"
                 >
-                  <div className="px-4 py-4 mb-2 bg-slate-50/50 rounded-2xl border border-slate-100">
-                    <div className="text-[14px] font-black text-slate-900 truncate">
+                  <div className="px-2 py-2">
+                    <div className="text-sm font-medium text-foreground">
                       {displayName(authUser)}
                     </div>
-                    <div className="text-[11px] text-slate-500 truncate font-semibold">
+                    <div className="mt-0.5 text-xs text-muted-foreground">
                       {authUser?.email}
                     </div>
                   </div>
+                  <DropdownMenu.Separator className="my-1 h-px bg-border" />
                   <DropdownMenu.Item
-                    className="flex cursor-pointer items-center gap-3 rounded-xl px-4 py-3 text-[12px] font-bold text-slate-600 outline-none hover:bg-red-50 hover:text-red-600 transition-colors"
+                    className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-sm text-muted-foreground outline-none hover:bg-muted hover:text-foreground focus:bg-muted focus:text-foreground"
                     onSelect={() => {
                       clearToken();
                       router.push("/login");
                     }}
                   >
-                    <IconLogout className="h-4 w-4" />
+                    <IconLogout className="h-4 w-4" aria-hidden />
                     {t("common.logOut")}
                   </DropdownMenu.Item>
                 </DropdownMenu.Content>
@@ -157,18 +161,19 @@ export function DashboardShell({
 
         <main
           ref={mainRef}
-          className="min-h-0 flex-1 overflow-auto p-4 sm:p-10 scroll-smooth no-scrollbar"
+          className="min-h-0 flex-1 overflow-auto p-6"
+          id="main-content"
         >
           <div
             key={pathname}
-            className="mx-auto max-w-[1600px] animate-in fade-in slide-in-from-bottom-2 duration-700"
+            className="mx-auto max-w-7xl animate-in fade-in duration-200"
           >
             {children}
           </div>
         </main>
-        <footer className="shrink-0 border-t border-slate-100 bg-white/80 px-4 py-4 backdrop-blur-xl sm:px-8" role="contentinfo">
-          <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">
-            <span className="w-full text-center">© {new Date().getFullYear()} {t("app.name")} — System Command Center</span>
+        <footer className="shrink-0 border-t border-border bg-card px-4 py-3 sm:px-6" role="contentinfo">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+            <span>© {new Date().getFullYear()} {t("app.name")}</span>
           </div>
         </footer>
       </div>

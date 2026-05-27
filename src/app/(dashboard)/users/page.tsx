@@ -66,19 +66,14 @@ export default function UsersPage() {
   );
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-8 px-4 font-sans max-w-[1400px] mx-auto">
+    <div className="space-y-6 animate-in fade-in duration-300 pb-8 font-sans">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between py-2">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-[#B5651D]/10 flex items-center justify-center text-[#B5651D]">
-            <IconUsers size={22} />
-          </div>
-          <div>
-            <h1 className="text-lg font-bold tracking-tight text-foreground">Users</h1>
-            <p className="text-[11px] font-medium text-muted-foreground/60">
-              {meta?.total ?? 0} registered accounts
-            </p>
-          </div>
+        <div>
+          <h1 className="text-xl font-bold tracking-tight text-foreground">Users</h1>
+          <p className="mt-1 text-sm font-medium text-muted-foreground">
+            {meta?.total ?? 0} registered accounts
+          </p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -255,7 +250,7 @@ export default function UsersPage() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="pagination-container">
                 <span className="text-[10px] font-bold text-muted-foreground/50">
                   Page {page} of {totalPages} · {meta?.total} total
                 </span>

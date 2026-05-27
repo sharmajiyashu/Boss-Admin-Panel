@@ -4,45 +4,45 @@
 :root {
   /* Modern SaaS Dashboard Palette: Clean, Minimal, Premium */
   --background: hsl(0, 0%, 100%);
-  --foreground: hsl(222, 47%, 11%);
+  --foreground: hsl(30, 10%, 10%);
 
-  --muted: hsl(210, 40%, 96%);
-  --muted-foreground: hsl(215, 16%, 47%);
+  --muted: hsl(220, 13%, 96%);
+  --muted-foreground: hsl(220, 10%, 28%);
 
   --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(222, 47%, 11%);
+  --popover-foreground: hsl(30, 10%, 10%);
 
   --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(222, 47%, 11%);
+  --card-foreground: hsl(30, 10%, 10%);
 
-  --border: hsl(214, 32%, 91%);
-  --input: hsl(214, 32%, 91%);
+  --border: hsl(220, 13%, 91%);
+  --input: hsl(220, 13%, 91%);
 
-  --primary: #B5651D;
+  --primary: hsl(28, 72%, 41%);
   --primary-foreground: hsl(0, 0%, 100%);
 
-  --secondary: #FE9738;
-  --secondary-foreground: hsl(222, 47%, 11%);
+  --secondary: hsl(214, 14%, 91%);
+  --secondary-foreground: hsl(220, 9%, 10%);
 
-  --accent: hsl(210, 40%, 96%);
-  --accent-foreground: hsl(222, 47%, 11%);
+  --accent: hsl(214, 14%, 91%);
+  --accent-foreground: hsl(220, 9%, 10%);
 
   --destructive: hsl(0, 84%, 60%);
   --destructive-foreground: hsl(0, 0%, 100%);
 
-  --ring: #B5651D;
-  --radius: 1rem;
+  --ring: hsl(28, 72%, 41%);
+  --radius: 0.5rem;
 
-  /* Sidebar: White & Clean */
-  --sidebar: hsl(0, 0%, 100%);
-  --sidebar-foreground: hsl(222, 47%, 11%);
-  --sidebar-background: hsl(0, 0%, 100%);
-  --sidebar-border: hsl(214, 32%, 91%);
-  --sidebar-primary: #B5651D;
+  /* Sidebar (Light/Simple) */
+  --sidebar: hsl(220, 13%, 98%);
+  --sidebar-foreground: hsl(30, 10%, 10%);
+  --sidebar-background: hsl(220, 13%, 98%);
+  --sidebar-border: hsl(220, 13%, 91%);
+  --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: hsl(0, 0%, 100%);
-  --sidebar-accent: hsl(210, 40%, 96%);
-  --sidebar-accent-foreground: hsl(222, 47%, 11%);
-  --sidebar-ring: #B5651D;
+  --sidebar-accent: hsl(214, 14%, 91%);
+  --sidebar-accent-foreground: hsl(220, 9%, 10%);
+  --sidebar-ring: var(--primary);
 
   /* Custom medical theme colors (retained for compatibility) */
   --medical-blue: hsl(222, 47%, 11%);
@@ -65,7 +65,7 @@
   }
 
   body {
-    @apply bg-[#F8FAFC] text-foreground antialiased font-sans selection:bg-primary/10 selection:text-primary;
+    @apply bg-background text-foreground antialiased font-sans selection:bg-primary/10 selection:text-primary;
   }
 
   h1,
@@ -76,38 +76,242 @@
   h6 {
     @apply font-bold tracking-tight text-slate-900;
   }
+
+  /* Systematic typography scaling & line-height boosts to match filive-admin's clean text hierarchies */
+  .text-\[8px\] {
+    font-size: 11px !important;
+    line-height: 1.25rem !important;
+  }
+
+  .text-\[9px\] {
+    font-size: 12px !important;
+    line-height: 1.25rem !important;
+  }
+
+  .text-\[10px\] {
+    font-size: 13px !important;
+    line-height: 1.375rem !important;
+  }
+
+  .text-\[11px\] {
+    font-size: 14px !important;
+    line-height: 1.5rem !important;
+  }
+
+  .text-\[12px\] {
+    font-size: 14px !important;
+    line-height: 1.5rem !important;
+  }
+
+  .text-\[13px\] {
+    font-size: 15px !important;
+    line-height: 1.5rem !important;
+  }
+
+  .text-\[14px\] {
+    font-size: 16px !important;
+    line-height: 1.625rem !important;
+  }
+
+  .text-xs {
+    font-size: 13px !important;
+    line-height: 1.375rem !important;
+  }
+
+  .text-sm {
+    font-size: 15px !important;
+    line-height: 1.5rem !important;
+  }
+
+  .text-base {
+    font-size: 17px !important;
+    line-height: 1.75rem !important;
+  }
+
+  /* Make text-lg look like page section subheadings */
+  .text-lg {
+    font-size: 1.25rem !important;
+    /* 20px */
+    line-height: 1.75rem !important;
+    font-weight: 800 !important;
+  }
+
+  /* Scale up text-xl to behaves as text-3xl font-black page headings */
+  .text-xl {
+    font-size: 1.875rem !important;
+    /* 30px */
+    line-height: 2.25rem !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.025em !important;
+  }
+
+  .text-2xl {
+    font-size: 26px !important;
+    line-height: 2.25rem !important;
+  }
+
+  .text-3xl {
+    font-size: 32px !important;
+    line-height: 2.5rem !important;
+  }
+
+  /* Override border-radius utility classes to match the rounded-2rem and rounded-3xl premium aesthetic */
+  .rounded-2xl {
+    border-radius: 2rem !important;
+    /* 32px - matches cards, dialogs, table containers */
+  }
+
+  .rounded-xl {
+    border-radius: 1.25rem !important;
+    /* 20px - matches search inputs, action buttons, card inner sections */
+  }
+
+  .rounded-lg {
+    border-radius: 0.75rem !important;
+    /* 12px */
+  }
+
+  .rounded-md {
+    border-radius: 0.5rem !important;
+    /* 8px */
+  }
+
+  /* Standardized modern table styling matching filive-admin */
+  table {
+    border-collapse: collapse !important;
+  }
+
+  table thead tr {
+    background-color: hsla(210, 40%, 96.1%, 0.4) !important;
+    /* slate-50/40 */
+    border-bottom: 1px solid hsl(214, 32%, 91.5%) !important;
+    /* border-slate-100 */
+  }
+
+  table th {
+    font-size: 13px !important;
+    /* text-xs */
+    font-weight: 700 !important;
+    /* font-bold */
+    letter-spacing: 0.05em !important;
+    /* tracking-wider */
+    text-transform: uppercase !important;
+    color: hsl(215, 16%, 47%) !important;
+    /* text-slate-500 */
+    padding: 1rem 1.5rem !important;
+  }
+
+  table tbody tr {
+    transition: background-color 200ms ease;
+    border-bottom: 1px solid hsl(210, 40%, 96.1%) !important;
+    /* divide-y divide-slate-100 */
+  }
+
+  table tbody tr:hover {
+    background-color: hsla(210, 40%, 96.1%, 0.25) !important;
+    /* hover:bg-slate-50/25 */
+  }
+
+  table td {
+    padding: 1rem 1.5rem !important;
+    vertical-align: middle !important;
+  }
+
+  /* Adjust heights of common controls (buttons, inputs, selects) to maintain visual balance with larger typography */
+  button.h-9,
+  input.h-9,
+  select.h-9,
+  a.h-9 {
+    height: 2.5rem !important;
+    /* Scale up from 36px to 40px */
+  }
+
+  button.h-10,
+  input.h-10,
+  select.h-10,
+  a.h-10 {
+    height: 2.75rem !important;
+    /* Scale up from 40px to 44px */
+  }
+
+  button.h-8,
+  input.h-8,
+  select.h-8,
+  a.h-8 {
+    height: 2.25rem !important;
+    /* Scale up from 32px to 36px */
+  }
+
+  /* Maintain perfectly square dimensions for scaled icon buttons */
+  .w-9.h-9 {
+    width: 2.5rem !important;
+    height: 2.5rem !important;
+  }
+
+  .w-8.h-8 {
+    width: 2.25rem !important;
+    height: 2.25rem !important;
+  }
+
+  .w-10.h-10 {
+    width: 2.75rem !important;
+    height: 2.75rem !important;
+  }
+
+  .w-12.h-12 {
+    width: 3.25rem !important;
+    height: 3.25rem !important;
+  }
 }
 
 @layer components {
   /* Modern SaaS UI Utility Classes */
 
   .glass-card {
-    @apply bg-white/70 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.04)];
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
   }
 
   .premium-shadow {
-    @apply shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.06)];
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
   }
 
   .premium-hover {
-    @apply hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-2px_rgba(0,0,0,0.05)] hover:-translate-y-0.5 transition-all duration-300;
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .premium-hover:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transform: translateY(-2px);
   }
 
   .card-premium {
-    @apply bg-white rounded-[24px] border border-slate-200/60 p-6 shadow-sm hover:shadow-md transition-all duration-300;
+    @apply bg-white border border-slate-200/60 p-6 shadow-sm hover:shadow-md transition-all duration-300;
+    border-radius: 24px;
   }
 
   /* Form Elements */
   .input-premium {
-    @apply h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium transition-all focus:border-primary/50 focus:ring-4 focus:ring-primary/5 outline-none placeholder:text-slate-400;
+    @apply h-11 w-full border border-slate-200 bg-white px-4 text-sm font-medium transition-all focus:border-primary/50 focus:ring-4 focus:ring-primary/5 outline-none placeholder:text-slate-400;
+    border-radius: 16px;
   }
 
   .btn-premium {
-    @apply h-11 px-6 rounded-2xl bg-slate-900 text-white text-sm font-bold transition-all hover:bg-slate-800 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2;
+    @apply h-11 px-6 bg-slate-900 text-white text-sm font-bold transition-all hover:bg-slate-800 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2;
+    border-radius: 16px;
   }
 
   .btn-gradient {
-    @apply h-11 px-6 rounded-2xl bg-[linear-gradient(268.96deg,#B5651D_0.19%,#FE9738_99.72%)] text-white text-sm font-black transition-all hover:opacity-90 shadow-lg shadow-primary/20 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2 uppercase tracking-widest;
+    @apply h-11 px-6 text-white text-sm font-black transition-all hover:opacity-90 shadow-lg shadow-primary/20 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2 uppercase tracking-widest;
+    background: linear-gradient(268.96deg, #B5651D 0.19%, #FE9738 99.72%);
+    border-radius: 16px;
+  }
+
+  .pagination-container {
+    @apply flex flex-col sm:flex-row items-center justify-between gap-4 p-1.5 bg-white border border-border rounded-2xl shadow-sm mt-6 pl-4;
   }
 }
 
@@ -196,4 +400,42 @@
 
 .rich-text-editor li {
   display: list-item !important;
+}
+
+.CollapsibleContent {
+  overflow: hidden;
+}
+
+.CollapsibleContent[data-state="open"] {
+  animation: slideDown 250ms ease-out;
+}
+
+.CollapsibleContent[data-state="closed"] {
+  animation: slideUp 200ms ease-in;
+}
+
+@keyframes slideDown {
+  from {
+    height: 0;
+  }
+
+  to {
+    height: var(--radix-collapsible-content-height);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    height: var(--radix-collapsible-content-height);
+  }
+
+  to {
+    height: 0;
+  }
+}
+
+/* Override arbitrary dashboard card roundings */
+.rounded-\[16px\] {
+  border-radius: 1.5rem !important;
+  /* 24px - matches premium dashboard style */
 }

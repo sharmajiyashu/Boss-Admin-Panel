@@ -140,17 +140,14 @@ export default function CitiesPage() {
   const meta = cityData?.meta;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-12 font-sans max-w-[1600px] mx-auto select-none px-4">
+    <div className="space-y-6 animate-in fade-in duration-300 pb-8 font-sans">
       {/* Header section */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between py-2">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-[#B5651D]/10 flex items-center justify-center text-[#B5651D]">
-            <IconBuildingCommunity size={22} />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight text-slate-800">Cities</h1>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Urban Centers</p>
-          </div>
+        <div>
+          <h1 className="text-xl font-bold tracking-tight text-foreground">Cities</h1>
+          <p className="mt-1 text-sm font-medium text-muted-foreground">
+            Urban Centers
+          </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -349,7 +346,7 @@ export default function CitiesPage() {
 
         {/* Pagination */}
         {meta && meta.totalPages > 1 && (
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-white shadow-sm border border-slate-100">
+          <div className="pagination-container">
              <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
               Records {((page - 1) * limit) + 1} — {Math.min(page * limit, meta.total)} <span className="mx-2 opacity-50">/</span> TOTAL {meta.total}
             </div>

@@ -126,21 +126,15 @@ export default function DashboardPage() {
     );
   }
 
-  // --------------- Render ---------------
   return (
-    <div className="space-y-8 animate-in fade-in duration-700 pb-12 font-sans max-w-[1600px] mx-auto select-none">
+    <div className="space-y-6 animate-in fade-in duration-300 pb-8 font-sans">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between py-4">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-[#B5651D] flex items-center justify-center text-white shadow-lg shadow-[#B5651D]/25">
-            <IconChartBar size={22} />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight text-slate-800">Dashboard</h1>
-            <p className="text-[11px] font-medium text-slate-400">
-              Weekly revenue: ₹ {weeklyRevenue.toLocaleString()}
-            </p>
-          </div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between py-2">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight text-foreground">Dashboard</h1>
+          <p className="mt-1 text-sm font-medium text-muted-foreground">
+            Weekly revenue: ₹ {weeklyRevenue.toLocaleString()}
+          </p>
         </div>
         <button
           onClick={() => refetch()}

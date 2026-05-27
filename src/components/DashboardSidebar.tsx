@@ -2,23 +2,36 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { IconLogout, IconUser, IconChevronRight } from "@tabler/icons-react";
+import { IconLogout, IconUser, IconChevronRight, IconChevronDown } from "@tabler/icons-react";
 import { sidebarNav, isNavSection } from "@/lib/sidebar-nav";
 import React, { useState, useEffect } from "react";
 import { twMerge } from "tailwind-merge";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getAuthUser, clearToken, type AuthUser } from "@/lib/api";
 import { useRouter } from "next/navigation";
+import * as Collapsible from "@radix-ui/react-collapsible";
 
 export function DashboardSidebar({ isCollapsed = false }: { isCollapsed?: boolean }) {
    const pathname = usePathname();
    const router = useRouter();
    const { t } = useLanguage();
    const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
 
    useEffect(() => {
       setAuthUser(getAuthUser());
    }, []);
+
+   useEffect(() => {
+      sidebarNav.forEach((item) => {
+         if (isNavSection(item)) {
+            const href = item.href;
+            if (pathname.startsWith(href)) {
+               setOpenSections((prev) => ({ ...prev, [href]: true }));
+            }
+         }
+      });
+   }, [pathname]);
 
    const handleLogout = () => {
       clearToken();
@@ -26,10 +39,10 @@ export function DashboardSidebar({ isCollapsed = false }: { isCollapsed?: boolea
    };
 
    return (
-      <aside className="relative flex h-full flex-col bg-white">
+      <aside className="relative flex h-full flex-col bg-sidebar text-sidebar-foreground">
          {/* Brand Section */}
-         <div className="flex shrink-0 items-center justify-center px-5 py-6">
-            <Link href="/dashboard" className="block">
+         <div className="flex shrink-0 items-center px-6 py-5">
+            <Link href="/dashboard" className="block transition-transform hover:opacity-90 active:scale-[0.98]">
                <img
                   src="/logo.svg"
                   alt="Bos"
@@ -41,11 +54,8 @@ export function DashboardSidebar({ isCollapsed = false }: { isCollapsed?: boolea
             </Link>
          </div>
 
-
-
-
          {/* Navigation Section */}
-         <nav className="flex-1 space-y-1 px-3 py-6 overflow-y-auto no-scrollbar">
+         <nav className="flex-1 space-y-1 px-4 py-4 overflow-y-auto no-scrollbar">
             {sidebarNav.map((item, index) => {
                const hasItems = isNavSection(item);
                const Icon = item.icon;
@@ -60,92 +70,119 @@ export function DashboardSidebar({ isCollapsed = false }: { isCollapsed?: boolea
                         key={href}
                         href={href}
                         className={twMerge(
-                           "group relative flex items-center gap-4 rounded-xl px-5 py-3.5 text-[13px] font-bold transition-all duration-300",
+                           "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
                            isActive
-                              ? "text-[#B5651D]"
-                              : "text-slate-600 hover:text-[#B5651D]"
+                              ? "bg-primary text-primary-foreground shadow-md shadow-primary/15"
+                              : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
                         )}
                      >
                         {Icon && (
                            <Icon
                               className={twMerge(
-                                 "h-5 w-5 shrink-0 transition-all",
-                                 isActive ? "text-[#B5651D]" : "text-slate-400 group-hover:text-[#B5651D]"
+                                 "h-5 w-5 shrink-0 transition-transform group-hover:scale-110",
+                                 isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground"
                               )}
                            />
                         )}
                         {!isCollapsed && (
                            <span className="flex-1 animate-in fade-in slide-in-from-left-2 duration-500">{t(titleKey)}</span>
                         )}
-
-                        {isActive && !isCollapsed && (
-                           <div className="flex items-center gap-2">
-                              <div className="h-1 w-1 rounded-full bg-[#B5651D]" />
-                              <IconChevronRight size={14} className="text-[#B5651D]/40" />
-                           </div>
-                        )}
                      </Link>
                   );
                } else {
+                  const href = item.href;
+                  const isOpen = openSections[href] ?? pathname.startsWith(href);
+
                   return (
-                    <div key={titleKey} className="space-y-1">
-                      {!isCollapsed && (
-                        <div className="px-5 pt-4 pb-2">
-                          <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400/80">
-                            {t(titleKey)}
-                          </p>
-                        </div>
-                      )}
-                      {item.items.map((subItem) => {
-                        const SubIcon = subItem.icon;
-                        const isActive = pathname === subItem.href;
-                        return (
-                          <Link
-                            key={subItem.href}
-                            href={subItem.href}
-                            className={twMerge(
-                              "group relative flex items-center gap-4 rounded-xl px-5 py-3 text-[13px] font-bold transition-all duration-300",
-                              isActive
-                                ? "text-[#B5651D]"
-                                : "text-slate-600 hover:text-[#B5651D]"
-                            )}
-                          >
-                            {SubIcon && (
-                              <SubIcon
-                                className={twMerge(
-                                  "h-4 w-4 shrink-0 transition-all",
-                                  isActive ? "text-[#B5651D]" : "text-slate-400 group-hover:text-[#B5651D]"
-                                )}
+                     <Collapsible.Root
+                        key={titleKey}
+                        open={isOpen}
+                        onOpenChange={(open) =>
+                           setOpenSections((prev) => ({ ...prev, [href]: open }))
+                        }
+                        className="space-y-1"
+                     >
+                        <Collapsible.Trigger
+                           className={twMerge(
+                              "group flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-all duration-200 outline-none border-none",
+                              "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
+                              isOpen && "bg-sidebar-accent/50 text-foreground"
+                           )}
+                        >
+                           <div className="flex items-center gap-3">
+                              {Icon && (
+                                 <Icon
+                                    className={twMerge(
+                                       "h-5 w-5 shrink-0 transition-transform group-hover:scale-110",
+                                       isOpen ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                                    )}
+                                 />
+                              )}
+                              {!isCollapsed && (
+                                 <span className="flex-1 animate-in fade-in slide-in-from-left-2 duration-500">{t(titleKey)}</span>
+                              )}
+                           </div>
+                           {!isCollapsed && (
+                              <IconChevronDown
+                                 size={16}
+                                 className={twMerge(
+                                    "text-muted-foreground/50 transition-transform duration-300",
+                                    isOpen && "rotate-180 text-primary opacity-100"
+                                 )}
                               />
-                            )}
-                            {!isCollapsed && (
-                              <span className="flex-1 animate-in fade-in slide-in-from-left-2 duration-500">{t(subItem.titleKey)}</span>
-                            )}
-                            {isActive && !isCollapsed && (
-                               <div className="h-1 w-1 rounded-full bg-[#B5651D]" />
-                            )}
-                          </Link>
-                        );
-                      })}
-                    </div>
+                           )}
+                        </Collapsible.Trigger>
+                        <Collapsible.Content className="CollapsibleContent overflow-hidden">
+                           <div className={twMerge("space-y-1 mt-1", !isCollapsed && "ml-5 border-l-2 border-primary/10 pl-4")}>
+                              {item.items.map((subItem) => {
+                                 const SubIcon = subItem.icon;
+                                 const isActive = pathname === subItem.href;
+                                 return (
+                                    <Link
+                                       key={subItem.href}
+                                       href={subItem.href}
+                                       className={twMerge(
+                                          "group flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-all duration-200",
+                                          isActive
+                                             ? "font-semibold text-primary bg-primary/5"
+                                             : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50"
+                                       )}
+                                    >
+                                       {SubIcon && (
+                                          <SubIcon
+                                             className={twMerge(
+                                                "h-4 w-4 shrink-0 transition-all",
+                                                isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                                             )}
+                                          />
+                                       )}
+                                       {!isCollapsed && (
+                                          <span className="flex-1 animate-in fade-in slide-in-from-left-2 duration-500">{t(subItem.titleKey)}</span>
+                                       )}
+                                    </Link>
+                                 );
+                              })}
+                           </div>
+                        </Collapsible.Content>
+                     </Collapsible.Root>
                   );
                }
             })}
          </nav>
 
          {/* User Footer */}
-         <div className="mt-auto border-t border-slate-50 p-4">
+         <div className="mt-auto border-t border-sidebar-border/50 p-4">
             <div className={twMerge(
-               "flex items-center gap-3 rounded-2xl bg-slate-50 p-3 transition-all duration-500",
+               "flex items-center gap-3 rounded-2xl bg-sidebar-accent/50 p-3 transition-all duration-500",
                isCollapsed ? "justify-center" : "justify-between"
             )}>
                {!isCollapsed && (
                   <div className="flex items-center gap-3">
-                     <div className="h-9 w-9 shrink-0 rounded-lg bg-white shadow-sm flex items-center justify-center text-[#B5651D]">
+                     <div className="h-9 w-9 shrink-0 rounded-lg bg-white shadow-sm flex items-center justify-center text-primary">
                         <IconUser size={18} />
                      </div>
                      <div className="min-w-0">
-                        <p className="truncate text-[11px] font-black uppercase text-slate-800">
+                        <p className="truncate text-xs font-semibold text-slate-800">
                            Account Settings
                         </p>
                      </div>

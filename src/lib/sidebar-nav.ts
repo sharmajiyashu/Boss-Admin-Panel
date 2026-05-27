@@ -19,6 +19,7 @@ export interface SidebarNavItem {
 
 export interface SidebarNavSection {
   titleKey: string;
+  href: string;
   items: SidebarNavItem[];
   icon?: React.ElementType;
 }
@@ -30,13 +31,21 @@ export function isNavSection(item: SidebarNavItemType): item is SidebarNavSectio
 }
 
 export const sidebarNav: SidebarNavItemType[] = [
-  { titleKey: "nav.dashboard", href: "/", icon: IconLayoutDashboard },
-  { titleKey: "nav.categories", href: "/categories", icon: IconCategory },
-  { titleKey: "nav.subcategories", href: "/subcategories", icon: IconHierarchy },
+  { titleKey: "nav.dashboard", href: "/dashboard", icon: IconLayoutDashboard },
+  {
+    titleKey: "nav.catalog",
+    href: "/catalog",
+    icon: IconCategory,
+    items: [
+      { titleKey: "nav.categories", href: "/categories", icon: IconCategory },
+      { titleKey: "nav.subcategories", href: "/subcategories", icon: IconHierarchy },
+    ],
+  },
   { titleKey: "nav.products", href: "/products", icon: IconPackage },
   { titleKey: "nav.users", href: "/users", icon: IconUsers },
   {
     titleKey: "nav.locationManagement",
+    href: "/location",
     icon: IconWorld,
     items: [
       { titleKey: "nav.countries", href: "/countries", icon: IconWorld },

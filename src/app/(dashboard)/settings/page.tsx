@@ -68,16 +68,13 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-8 px-4 font-sans max-w-4xl mx-auto">
+    <div className="space-y-6 animate-in fade-in duration-300 pb-8 font-sans">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between py-2">
-        <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-xl bg-[#B5651D]/5 flex items-center justify-center text-[#B5651D]">
-            <IconSettings size={20} />
-          </div>
-          <div>
-            <h1 className="text-lg font-bold tracking-tight text-foreground">App Settings</h1>
-            <p className="text-[11px] font-medium text-muted-foreground/60">Configure platform fees and moderation guidelines.</p>
-          </div>
+        <div>
+          <h1 className="text-xl font-bold tracking-tight text-foreground">App Settings</h1>
+          <p className="mt-1 text-sm font-medium text-muted-foreground">
+            Configure platform fees and moderation guidelines.
+          </p>
         </div>
 
         <button

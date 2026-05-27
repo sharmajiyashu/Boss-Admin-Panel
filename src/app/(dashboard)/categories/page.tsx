@@ -138,17 +138,14 @@ export default function CategoriesPage() {
   const meta = categoryData?.meta;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-12 font-sans max-w-[1600px] mx-auto select-none">
+    <div className="space-y-6 animate-in fade-in duration-300 pb-8 font-sans">
       {/* Header section */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between py-2">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-[#B5651D]/10 flex items-center justify-center text-[#B5651D]">
-            <IconCategory size={22} />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight text-slate-800">Categories</h1>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Market Classification</p>
-          </div>
+        <div>
+          <h1 className="text-xl font-bold tracking-tight text-foreground">Categories</h1>
+          <p className="mt-1 text-sm font-medium text-muted-foreground">
+            Market Classification
+          </p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -320,7 +317,7 @@ export default function CategoriesPage() {
 
         {/* Pagination Bar */}
         {meta && meta.totalPages > 1 && (
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-white shadow-sm border border-slate-100">
+          <div className="pagination-container">
             <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
               Records {((page - 1) * limit) + 1} — {Math.min(page * limit, meta.total)} <span className="mx-2 opacity-50">/</span> TOTAL {meta.total}
             </div>

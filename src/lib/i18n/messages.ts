@@ -43,6 +43,7 @@ export const messages: Record<Locale, Record<string, string>> = {
 
 
     "nav.dashboard": "Dashboard",
+    "nav.catalog": "Category Management",
     "nav.categories": "Categories",
     "nav.subcategories": "Subcategories",
     "nav.products": "Listings",
@@ -101,6 +102,7 @@ export const messages: Record<Locale, Record<string, string>> = {
     "nav.subscriptions": "ការជាវ",
     "nav.enquiries": "ការសាកសួរ",
     "nav.reports": "របាយការណ៍",
+    "nav.catalog": "ការគ្រប់គ្រងប្រភេទ",
     "nav.locationManagement": "ការគ្រប់គ្រងទីតាំង",
     "nav.countries": "ប្រទេស",
     "nav.states": "រដ្ឋ",

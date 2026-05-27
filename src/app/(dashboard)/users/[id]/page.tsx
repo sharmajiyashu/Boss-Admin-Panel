@@ -132,7 +132,7 @@ export default function UserDetailPage() {
   ];
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-8 px-4 font-sans">
+    <div className="space-y-6 animate-in fade-in duration-300 pb-8 font-sans">
       {/* ── Header ── */}
       <div className="flex items-center gap-4 py-2">
         <button
@@ -144,7 +144,7 @@ export default function UserDetailPage() {
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <UserAvatar u={user} size="h-11 w-11" />
           <div className="min-w-0">
-            <h1 className="text-base font-bold tracking-tight text-slate-900 truncate">
+            <h1 className="text-xl font-bold tracking-tight text-foreground truncate">
               {user.firstName} {user.lastName}
             </h1>
             <div className="flex items-center gap-2 mt-0.5">

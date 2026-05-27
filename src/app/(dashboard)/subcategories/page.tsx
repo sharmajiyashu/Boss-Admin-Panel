@@ -279,17 +279,14 @@ export default function SubcategoriesPage() {
   const cats = categoriesData?.data || [];
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-8 px-4 font-sans">
+    <div className="space-y-6 animate-in fade-in duration-300 pb-8 font-sans">
       {/* Header section identical to categories */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between py-2">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-[#B5651D]/10 flex items-center justify-center text-[#B5651D]">
-            <IconHierarchy size={22} />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight text-slate-800">Subcategories</h1>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Categorization Hierarchy</p>
-          </div>
+        <div>
+          <h1 className="text-xl font-bold tracking-tight text-foreground">Subcategories</h1>
+          <p className="mt-1 text-sm font-medium text-muted-foreground">
+            Categorization Hierarchy
+          </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -397,9 +394,9 @@ export default function SubcategoriesPage() {
                           </span>
                         </td>
                         <td className="px-6 py-3.5 text-center">
-                           <span className="text-[11px] font-bold text-[#B5651D] px-2 py-0.5 rounded-md bg-[#B5651D]/5 border border-[#B5651D]/10">
+                          <span className="text-[11px] font-bold text-[#B5651D] px-2 py-0.5 rounded-md bg-[#B5651D]/5 border border-[#B5651D]/10">
                             {sub.customFieldDefinitions?.length || 0}
-                           </span>
+                          </span>
                         </td>
                         <td className="px-6 py-3.5 text-center">
                           <span className={twMerge(
@@ -451,7 +448,7 @@ export default function SubcategoriesPage() {
             {/* Mobile/Tablet Grid View */}
             <div className="lg:hidden grid grid-cols-1 md:grid-cols-2 gap-4">
               {subs.map((sub) => (
-                <div 
+                <div
                   key={sub.id || sub._id}
                   className="bg-card rounded-2xl p-5 shadow-sm ring-1 ring-black/[0.04] space-y-4"
                 >
@@ -530,7 +527,7 @@ export default function SubcategoriesPage() {
 
         {/* Premium Floating Pagination Bar */}
         {meta && meta.totalPages > 1 && (
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-card/60 backdrop-blur-md shadow-[0_-1px_10px_rgba(0,0,0,0.02)] ring-1 ring-black/[0.04]">
+          <div className="pagination-container">
             <div className="text-[10px] font-extrabold text-muted-foreground/40 uppercase tracking-widest">
               Records {((page - 1) * limit) + 1} — {Math.min(page * limit, meta.total)} <span className="mx-2 opacity-50">/</span> TOTAL {meta.total}
             </div>
@@ -780,117 +777,117 @@ export default function SubcategoriesPage() {
                     No custom fields yet. Add fields only if listings need extra attributes.
                   </p>
                 ) : (
-                    <ul className="space-y-3">
-                      {formData.customFieldDefinitions.map((field, idx) => (
-                        <li
-                          key={idx}
-                          className="space-y-3 rounded-xl bg-card p-3 shadow-sm ring-1 ring-black/[0.05]"
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <span className="text-[10px] font-bold text-muted-foreground/60">Field {idx + 1}</span>
-                            <button
-                              type="button"
-                              onClick={() => removeField(idx)}
-                              className="shrink-0 rounded-md p-1 text-muted-foreground hover:bg-red-50 hover:text-red-600"
-                              aria-label="Remove field"
+                  <ul className="space-y-3">
+                    {formData.customFieldDefinitions.map((field, idx) => (
+                      <li
+                        key={idx}
+                        className="space-y-3 rounded-xl bg-card p-3 shadow-sm ring-1 ring-black/[0.05]"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="text-[10px] font-bold text-muted-foreground/60">Field {idx + 1}</span>
+                          <button
+                            type="button"
+                            onClick={() => removeField(idx)}
+                            className="shrink-0 rounded-md p-1 text-muted-foreground hover:bg-red-50 hover:text-red-600"
+                            aria-label="Remove field"
+                          >
+                            <IconX size={14} />
+                          </button>
+                        </div>
+                        <div className="grid gap-2 sm:grid-cols-2">
+                          <div className="space-y-0.5">
+                            <label className="text-[9px] font-bold text-muted-foreground/60">Label</label>
+                            <input
+                              value={field.label}
+                              onChange={(e) => updateField(idx, { label: e.target.value })}
+                              className="h-8 w-full rounded-lg border-0 bg-muted/50 px-2.5 text-[11px] font-semibold text-foreground shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] outline-none focus:ring-2 focus:ring-[#B5651D]/20"
+                              placeholder="Shown to users"
+                            />
+                          </div>
+                          <div className="space-y-0.5">
+                            <label className="text-[9px] font-bold text-muted-foreground/60">Key</label>
+                            <input
+                              value={field.key}
+                              onChange={(e) => updateField(idx, { key: e.target.value })}
+                              className="h-8 w-full rounded-lg border-0 bg-muted/50 px-2.5 font-mono text-[11px] text-foreground shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] outline-none focus:ring-2 focus:ring-[#B5651D]/20"
+                              placeholder="internal_key"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap items-end gap-3">
+                          <div className="min-w-[140px] flex-1 space-y-0.5">
+                            <label className="text-[9px] font-bold text-muted-foreground/60">Type</label>
+                            <NativeSelect
+                              value={field.fieldType}
+                              onChange={(e) => {
+                                const v = e.target.value;
+                                if (isFieldType(v)) updateField(idx, { fieldType: v });
+                              }}
+                              className="h-8 min-h-8 py-1.5 pr-8 text-[11px] font-semibold"
                             >
-                              <IconX size={14} />
-                            </button>
+                              {FIELD_TYPES.map((ft) => (
+                                <option key={ft} value={ft}>
+                                  {ft}
+                                </option>
+                              ))}
+                            </NativeSelect>
                           </div>
-                          <div className="grid gap-2 sm:grid-cols-2">
-                            <div className="space-y-0.5">
-                              <label className="text-[9px] font-bold text-muted-foreground/60">Label</label>
-                              <input
-                                value={field.label}
-                                onChange={(e) => updateField(idx, { label: e.target.value })}
-                                className="h-8 w-full rounded-lg border-0 bg-muted/50 px-2.5 text-[11px] font-semibold text-foreground shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] outline-none focus:ring-2 focus:ring-[#B5651D]/20"
-                                placeholder="Shown to users"
-                              />
-                            </div>
-                            <div className="space-y-0.5">
-                              <label className="text-[9px] font-bold text-muted-foreground/60">Key</label>
-                              <input
-                                value={field.key}
-                                onChange={(e) => updateField(idx, { key: e.target.value })}
-                                className="h-8 w-full rounded-lg border-0 bg-muted/50 px-2.5 font-mono text-[11px] text-foreground shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] outline-none focus:ring-2 focus:ring-[#B5651D]/20"
-                                placeholder="internal_key"
-                              />
-                            </div>
-                          </div>
-                          <div className="flex flex-wrap items-end gap-3">
-                            <div className="min-w-[140px] flex-1 space-y-0.5">
-                              <label className="text-[9px] font-bold text-muted-foreground/60">Type</label>
-                              <NativeSelect
-                                value={field.fieldType}
-                                onChange={(e) => {
-                                  const v = e.target.value;
-                                  if (isFieldType(v)) updateField(idx, { fieldType: v });
-                                }}
-                                className="h-8 min-h-8 py-1.5 pr-8 text-[11px] font-semibold"
+                          <label className="flex cursor-pointer items-center gap-2 text-[11px] font-semibold text-foreground">
+                            <input
+                              type="checkbox"
+                              checked={field.isRequired}
+                              onChange={(e) => updateField(idx, { isRequired: e.target.checked })}
+                              className="h-4 w-4 rounded border-border"
+                            />
+                            Required
+                          </label>
+                          <label className="flex cursor-pointer items-center gap-2 text-[11px] font-semibold text-foreground">
+                            <input
+                              type="checkbox"
+                              checked={field.isFilterable}
+                              onChange={(e) => updateField(idx, { isFilterable: e.target.checked })}
+                              className="h-4 w-4 rounded border-border"
+                            />
+                            Filterable
+                          </label>
+                        </div>
+                        {["select", "switch", "checkbox"].includes(field.fieldType) && (
+                          <div className="space-y-2 border-t border-black/[0.06] pt-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[9px] font-bold text-muted-foreground/60">Options</span>
+                              <button
+                                type="button"
+                                onClick={() => addOption(idx)}
+                                className="text-[10px] font-bold text-[#B5651D] hover:underline"
                               >
-                                {FIELD_TYPES.map((ft) => (
-                                  <option key={ft} value={ft}>
-                                    {ft}
-                                  </option>
-                                ))}
-                              </NativeSelect>
+                                Add option
+                              </button>
                             </div>
-                            <label className="flex cursor-pointer items-center gap-2 text-[11px] font-semibold text-foreground">
-                              <input
-                                type="checkbox"
-                                checked={field.isRequired}
-                                onChange={(e) => updateField(idx, { isRequired: e.target.checked })}
-                                className="h-4 w-4 rounded border-border"
-                              />
-                              Required
-                            </label>
-                            <label className="flex cursor-pointer items-center gap-2 text-[11px] font-semibold text-foreground">
-                              <input
-                                type="checkbox"
-                                checked={field.isFilterable}
-                                onChange={(e) => updateField(idx, { isFilterable: e.target.checked })}
-                                className="h-4 w-4 rounded border-border"
-                              />
-                              Filterable
-                            </label>
+                            <div className="flex flex-col gap-2">
+                              {field.options?.map((opt, optIdx) => (
+                                <div key={optIdx} className="flex gap-1">
+                                  <input
+                                    value={opt}
+                                    onChange={(e) => updateOption(idx, optIdx, e.target.value)}
+                                    className="h-8 min-w-0 flex-1 rounded-lg border-0 bg-muted/50 px-2 text-[11px] text-foreground shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] outline-none focus:ring-2 focus:ring-[#B5651D]/20"
+                                    placeholder={`Option ${optIdx + 1}`}
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => removeOption(idx, optIdx)}
+                                    className="rounded-lg px-2 text-red-500 hover:bg-red-50"
+                                    aria-label="Remove option"
+                                  >
+                                    <IconX size={14} />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                          {["select", "switch", "checkbox"].includes(field.fieldType) && (
-                            <div className="space-y-2 border-t border-black/[0.06] pt-2">
-                              <div className="flex items-center justify-between">
-                                <span className="text-[9px] font-bold text-muted-foreground/60">Options</span>
-                                <button
-                                  type="button"
-                                  onClick={() => addOption(idx)}
-                                  className="text-[10px] font-bold text-[#B5651D] hover:underline"
-                                >
-                                  Add option
-                                </button>
-                              </div>
-                              <div className="flex flex-col gap-2">
-                                {field.options?.map((opt, optIdx) => (
-                                  <div key={optIdx} className="flex gap-1">
-                                    <input
-                                      value={opt}
-                                      onChange={(e) => updateOption(idx, optIdx, e.target.value)}
-                                      className="h-8 min-w-0 flex-1 rounded-lg border-0 bg-muted/50 px-2 text-[11px] text-foreground shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] outline-none focus:ring-2 focus:ring-[#B5651D]/20"
-                                      placeholder={`Option ${optIdx + 1}`}
-                                    />
-                                    <button
-                                      type="button"
-                                      onClick={() => removeOption(idx, optIdx)}
-                                      className="rounded-lg px-2 text-red-500 hover:bg-red-50"
-                                      aria-label="Remove option"
-                                    >
-                                      <IconX size={14} />
-                                    </button>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
                 )}
               </div>
 
