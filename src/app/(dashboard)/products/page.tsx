@@ -22,7 +22,9 @@ import {
   IconMessageCircle,
   IconExternalLink,
   IconTag,
-  IconInfoCircle
+  IconInfoCircle,
+  IconEdit,
+  IconTrash
 } from "@tabler/icons-react";
 import { twMerge } from "tailwind-merge";
 import * as Dialog from "@radix-ui/react-dialog";
@@ -40,10 +42,28 @@ export default function ProductsPage() {
 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [activeImageUrl, setActiveImageUrl] = useState<string | null>(null);
+
+  const [selectedEditProduct, setSelectedEditProduct] = useState<Product | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editPrice, setEditPrice] = useState<number>(0);
+  const [editDescription, setEditDescription] = useState("");
+  const [editStatus, setEditStatus] = useState<'pending' | 'approved' | 'rejected' | 'sold' | 'inactive'>("pending");
 
   const openDetails = (product: Product) => {
     setSelectedProduct(product);
+    setActiveImageUrl(product.media?.[0]?.url || null);
     setIsDetailsOpen(true);
+  };
+
+  const openEdit = (product: Product) => {
+    setSelectedEditProduct(product);
+    setEditName(product.name);
+    setEditPrice(product.price);
+    setEditDescription(product.description || "");
+    setEditStatus(product.status);
+    setIsEditOpen(true);
   };
 
   const { data, isLoading, isError, refetch, isRefetching } = useQuery({
@@ -76,6 +96,31 @@ export default function ProductsPage() {
     },
     onError: (error: any) => {
       toast.error(error.message || "Failed to reject product");
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => productService.deleteProduct(id),
+    onSuccess: () => {
+      toast.success("Product deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to delete product");
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<Product> }) =>
+      productService.updateProduct(id, data),
+    onSuccess: () => {
+      toast.success("Product updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      setIsEditOpen(false);
+      setSelectedEditProduct(null);
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to update product");
     },
   });
 
@@ -229,7 +274,7 @@ export default function ProductsPage() {
                           <td className="px-6 py-3.5">
                             <div className="flex flex-col gap-0.5">
                               <div className="flex items-center gap-1.5">
-                                <IconUser size={10} className="text-muted-foreground/40" />
+                                <IconUser size={15} className="text-muted-foreground/60" />
                                 <span className="text-[11px] font-medium text-foreground">{item.seller?.firstName} {item.seller?.lastName}</span>
                               </div>
                               <div className="flex items-center gap-1.5 opacity-60">
@@ -247,31 +292,53 @@ export default function ProductsPage() {
                             </span>
                           </td>
                           <td className="px-8 py-3.5 text-right">
-                            <div className="flex items-center justify-end gap-1.5">
+                            <div className="flex items-center justify-end gap-2">
                               <button
                                 onClick={() => openDetails(item)}
-                                className="h-9 w-9 rounded-xl flex items-center justify-center text-muted-foreground/40 hover:bg-foreground hover:text-background border border-transparent transition-all active:scale-95 shadow-none hover:shadow-lg"
+                                className="h-10 w-10 rounded-xl flex items-center justify-center text-muted-foreground/40 hover:bg-foreground hover:text-background border border-transparent transition-all active:scale-95 shadow-none hover:shadow-lg"
                                 title="View Product Dossier"
                               >
-                                <IconEye size={16} stroke={2} />
+                                <IconEye size={18} stroke={2} />
                               </button>
+
+                              <button
+                                onClick={() => openEdit(item)}
+                                className="h-10 w-10 rounded-xl flex items-center justify-center text-blue-500 hover:bg-blue-50 border border-transparent hover:border-blue-100 transition-all active:scale-95 shadow-none hover:shadow-sm"
+                                title="Edit Product"
+                              >
+                                <IconEdit size={18} stroke={2} />
+                              </button>
+
+                              <button
+                                onClick={() => {
+                                  if (window.confirm("Are you sure you want to delete this listing?")) {
+                                    deleteMutation.mutate(item._id);
+                                  }
+                                }}
+                                disabled={deleteMutation.isPending}
+                                className="h-10 w-10 rounded-xl flex items-center justify-center text-rose-500 hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-all active:scale-95 shadow-none hover:shadow-sm disabled:opacity-50"
+                                title="Delete Product"
+                              >
+                                <IconTrash size={18} stroke={2} />
+                              </button>
+
                               {item.status === 'pending' && (
                                 <>
                                   <button
                                     onClick={() => approveMutation.mutate(item._id)}
                                     disabled={approveMutation.isPending}
-                                    className="h-8 w-8 rounded-lg flex items-center justify-center text-emerald-500 hover:bg-emerald-50 border border-transparent hover:border-emerald-100 transition-all active:scale-95 shadow-none hover:shadow-sm disabled:opacity-50"
+                                    className="h-10 w-10 rounded-xl flex items-center justify-center text-emerald-500 hover:bg-emerald-50 border border-transparent hover:border-emerald-100 transition-all active:scale-95 shadow-none hover:shadow-sm disabled:opacity-50"
                                     title="Approve"
                                   >
-                                    <IconCheck size={14} stroke={3} />
+                                    <IconCheck size={18} stroke={3} />
                                   </button>
                                   <button
                                     onClick={() => rejectMutation.mutate(item._id)}
                                     disabled={rejectMutation.isPending}
-                                    className="h-8 w-8 rounded-lg flex items-center justify-center text-red-500 hover:bg-red-50 border border-transparent hover:border-red-100 transition-all active:scale-95 shadow-none hover:shadow-sm disabled:opacity-50"
+                                    className="h-10 w-10 rounded-xl flex items-center justify-center text-red-500 hover:bg-red-50 border border-transparent hover:border-red-100 transition-all active:scale-95 shadow-none hover:shadow-sm disabled:opacity-50"
                                     title="Reject"
                                   >
-                                    <IconX size={14} stroke={3} />
+                                    <IconX size={18} stroke={3} />
                                   </button>
                                 </>
                               )}
@@ -330,30 +397,52 @@ export default function ProductsPage() {
                       </div>
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <button
                         onClick={() => openDetails(item)}
                         className="flex-1 h-10 rounded-xl bg-foreground text-background text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all"
                       >
-                        <IconEye size={14} stroke={3} />
-                        View Dossier
+                        <IconEye size={16} stroke={3} />
+                        View
                       </button>
+
+                      <button
+                        onClick={() => openEdit(item)}
+                        className="h-10 px-3.5 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all"
+                      >
+                        <IconEdit size={16} stroke={3} />
+                        Edit
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          if (window.confirm("Are you sure you want to delete this listing?")) {
+                            deleteMutation.mutate(item._id);
+                          }
+                        }}
+                        disabled={deleteMutation.isPending}
+                        className="h-10 w-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center border border-rose-100 active:scale-95 transition-all disabled:opacity-50"
+                        title="Delete Product"
+                      >
+                        <IconTrash size={16} stroke={3} />
+                      </button>
+
                       {item.status === 'pending' && (
                         <>
                           <button
                             onClick={() => approveMutation.mutate(item._id)}
                             disabled={approveMutation.isPending}
-                            className="flex-1 h-9 rounded-xl bg-emerald-50 text-emerald-600 text-[10px] font-bold flex items-center justify-center gap-2 border border-emerald-100 active:scale-95 disabled:opacity-50"
+                            className="flex-1 h-10 rounded-xl bg-emerald-50 text-emerald-600 text-[10px] font-bold flex items-center justify-center gap-2 border border-emerald-100 active:scale-95 disabled:opacity-50"
                           >
-                            <IconCheck size={14} stroke={3} />
+                            <IconCheck size={16} stroke={3} />
                             Approve
                           </button>
                           <button
                             onClick={() => rejectMutation.mutate(item._id)}
                             disabled={rejectMutation.isPending}
-                            className="h-9 w-9 rounded-xl bg-red-50 text-red-500 flex items-center justify-center border border-red-100 active:scale-95 disabled:opacity-50"
+                            className="h-10 w-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center border border-red-100 active:scale-95 disabled:opacity-50"
                           >
-                            <IconX size={14} stroke={3} />
+                            <IconX size={16} stroke={3} />
                           </button>
                         </>
                       )}
@@ -422,171 +511,309 @@ export default function ProductsPage() {
       {/* Product Details Modal */}
       <Dialog.Root open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
         <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md animate-in fade-in duration-300" />
-          <Dialog.Content className="fixed left-[50%] top-[50%] z-[101] w-full max-w-2xl translate-x-[-50%] translate-y-[-50%] overflow-hidden rounded-[32px] border-0 bg-card p-0 shadow-2xl outline-none ring-1 ring-black/[0.1] animate-in zoom-in-95 fade-in duration-200">
+          <Dialog.Overlay className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" />
+          <Dialog.Content className="fixed left-[50%] top-[50%] z-[101] w-full max-w-4xl translate-x-[-50%] translate-y-[-50%] overflow-hidden rounded-2xl border border-slate-200 bg-white p-0 shadow-lg outline-none animate-in zoom-in-95 fade-in duration-200">
             {selectedProduct && (
-              <div className="flex flex-col h-[85vh] md:h-auto max-h-[90vh]">
+              <div className="flex flex-col md:flex-row h-[80vh] max-h-[700px] w-full">
                 <Dialog.Title className="sr-only">Product Details: {selectedProduct.name}</Dialog.Title>
                 <Dialog.Description className="sr-only">Detailed dossier for product moderation, including merchant information and listing evidence.</Dialog.Description>
 
-                {/* Hero Image Section */}
-                <div className="relative h-64 md:h-80 bg-muted shrink-0">
-                  {selectedProduct.media?.[0]?.url ? (
-                    <Image
-                      src={selectedProduct.media[0].url}
-                      alt={selectedProduct.name}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="h-full w-full flex items-center justify-center text-muted-foreground/20 bg-muted/40">
-                      <IconPackage size={80} stroke={1} />
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-
-                  <Dialog.Close className="absolute top-6 right-6 h-10 w-10 flex items-center justify-center rounded-full bg-black/20 text-white backdrop-blur-xl hover:bg-black/40 transition-all z-20">
-                    <IconX size={20} />
-                  </Dialog.Close>
-
-                  <div className="absolute bottom-6 left-8 right-8 z-10">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className={twMerge(
-                        "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-white ring-1 ring-white/20",
-                        (getStatusClasses(selectedProduct.status).split(' ')[1] || "bg-muted").replace('text-', 'bg-')
-                      )}>
-                        {selectedProduct.status}
-                      </span>
-                      <span className="px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-white ring-1 ring-white/10">
-                        ID: {selectedProduct._id.slice(-8)}
-                      </span>
-                    </div>
-                    <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight leading-tight">{selectedProduct.name}</h2>
-                  </div>
-                </div>
-
-                {/* Content Section */}
-                <div className="flex-1 overflow-y-auto p-8 space-y-8 no-scrollbar font-sans">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Core Info */}
-                    <div className="space-y-6">
-                      <div>
-                        <label className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-widest block mb-2">Technical Description</label>
-                        <p className="text-sm font-medium text-foreground/80 leading-relaxed bg-muted/30 p-4 rounded-2xl border border-border/30">
-                          {selectedProduct.description || "No description provided by seller."}
-                        </p>
+                {/* Left Side: Images */}
+                <div className="w-full md:w-[45%] bg-slate-50 p-6 flex flex-col h-full border-b md:border-b-0 md:border-r border-slate-200">
+                  <div className="flex-1 min-h-0 relative w-full rounded-xl overflow-hidden bg-white border border-slate-200/80 flex items-center justify-center">
+                    {activeImageUrl ? (
+                      <Image
+                        src={activeImageUrl}
+                        alt={selectedProduct.name}
+                        fill
+                        className="object-contain p-2"
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center text-slate-400">
+                        <IconPackage size={64} stroke={1.5} />
+                        <p className="text-xs font-semibold text-slate-500 mt-2">No Image Provided</p>
                       </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="p-4 rounded-2xl border border-border/50 bg-card shadow-sm">
-                          <IconTag size={16} className="text-[#B5651D] mb-2" />
-                          <p className="text-[9px] font-black text-muted-foreground/40 uppercase tracking-widest">Valuation</p>
-                          <p className="text-lg font-black text-foreground">₹{selectedProduct.price.toLocaleString()}</p>
-                        </div>
-                        <div className="p-4 rounded-2xl border border-border/50 bg-card shadow-sm">
-                          <IconPackage size={16} className="text-blue-500 mb-2" />
-                          <p className="text-[9px] font-black text-muted-foreground/40 uppercase tracking-widest">Inventory</p>
-                          <p className="text-lg font-black text-foreground">{selectedProduct.stock || 1} Units</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Side Panel: Seller & Origin */}
-                    <div className="space-y-6">
-                      <div className="p-6 rounded-[24px] bg-muted/20 border border-border/50 relative overflow-hidden group">
-                        <IconUser className="absolute -right-2 -top-2 h-16 w-16 text-black/[0.03] group-hover:scale-110 transition-transform" />
-                        <label className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-widest block mb-4">Merchant Origin</label>
-                        <div className="flex items-center gap-4">
-                          <div className="h-12 w-12 rounded-2xl bg-[#B5651D] flex items-center justify-center text-white font-black text-lg shadow-lg shadow-[#B5651D]/20">
-                            {(selectedProduct.seller.firstName || "U")[0]}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="font-black text-foreground truncate">{selectedProduct.seller.firstName} {selectedProduct.seller.lastName}</p>
-                            <p className="text-[10px] font-bold text-muted-foreground/60 truncate">{selectedProduct.seller.email}</p>
-                          </div>
-                        </div>
-                        <button className="w-full mt-4 h-9 rounded-xl bg-card border border-border text-[9px] font-black uppercase tracking-widest hover:bg-muted transition-all flex items-center justify-center gap-2">
-                          Inspector Merchant Profile <IconArrowRight size={14} />
-                        </button>
-                      </div>
-
-                      <div className="space-y-3">
-                        <label className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-widest block px-1">Classification</label>
-                        <div className="flex flex-wrap gap-2">
-                          <span className="px-3 py-1.5 rounded-xl bg-blue-50 text-blue-700 text-[10px] font-black uppercase tracking-widest ring-1 ring-blue-100">
-                            {selectedProduct.category.name}
-                          </span>
-                          {selectedProduct.subcategory && (
-                            <span className="px-3 py-1.5 rounded-xl bg-amber-50 text-amber-700 text-[10px] font-black uppercase tracking-widest ring-1 ring-amber-100">
-                              {selectedProduct.subcategory.name}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+                    )}
                   </div>
 
-                  {/* Gallery Preview */}
-                  {selectedProduct.media.length > 1 && (
-                    <div className="space-y-4">
-                      <label className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-widest block">Evidence Gallery ({selectedProduct.media.length} items)</label>
-                      <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+                  {/* Thumbnail Evidence Gallery */}
+                  {selectedProduct.media && selectedProduct.media.length > 0 && (
+                    <div className="mt-5 shrink-0">
+                      <label className="text-xs font-semibold text-slate-500 block mb-2">Evidence Gallery ({selectedProduct.media.length})</label>
+                      <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
                         {selectedProduct.media.map((m, i) => (
-                          <div key={i} className="h-24 w-24 rounded-2xl bg-muted shrink-0 border border-border/50 overflow-hidden relative group cursor-zoom-in">
-                            <Image src={m.url} alt="" fill className="object-cover group-hover:scale-110 transition-transform" />
-                          </div>
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => setActiveImageUrl(m.url)}
+                            className={twMerge(
+                              "h-12 w-12 rounded-lg bg-white shrink-0 border overflow-hidden relative transition-all",
+                              activeImageUrl === m.url
+                                ? "border-amber-600 ring-2 ring-amber-600/20 scale-95"
+                                : "border-slate-200 opacity-60 hover:opacity-100"
+                            )}
+                          >
+                            <Image src={m.url} alt="" fill className="object-cover" />
+                          </button>
                         ))}
                       </div>
                     </div>
                   )}
                 </div>
 
-                {/* Actions Footer */}
-                <div className="p-8 bg-muted/30 border-t border-border flex items-center justify-between gap-4 shrink-0 rounded-b-[32px]">
-                  <div className="flex gap-3">
-                    {selectedProduct.status === 'pending' && (
-                      <>
-                        <button
-                          onClick={() => {
-                            approveMutation.mutate(selectedProduct._id);
-                            setIsDetailsOpen(false);
-                          }}
-                          disabled={approveMutation.isPending}
-                          className="h-12 px-8 rounded-2xl bg-emerald-600 text-white text-[12px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-emerald-600/10 hover:bg-emerald-700 active:scale-95 transition-all disabled:opacity-50"
-                        >
-                          <IconCheck size={18} stroke={3} />
-                          Authorize Listing
-                        </button>
-                        <button
-                          onClick={() => {
-                            rejectMutation.mutate(selectedProduct._id);
-                            setIsDetailsOpen(false);
-                          }}
-                          disabled={rejectMutation.isPending}
-                          className="h-12 px-8 rounded-2xl bg-rose-50 text-rose-600 border border-rose-200 text-[12px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-rose-100 active:scale-95 transition-all disabled:opacity-50"
-                        >
-                          <IconX size={18} stroke={3} />
-                          Decline Submission
-                        </button>
-                      </>
-                    )}
-                    {selectedProduct.status !== 'pending' && (
-                      <div className="flex items-center gap-2 text-muted-foreground/40 text-[10px] font-black uppercase tracking-widest">
-                        <IconInfoCircle size={16} />
-                        Listing status is final. No further direct moderation available.
+                {/* Right Side: Details */}
+                <div className="w-full md:w-[55%] flex flex-col h-full bg-white">
+                  {/* Header */}
+                  <div className="p-6 pb-4 border-b border-slate-100 flex shrink-0 justify-between items-start">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className={twMerge(
+                          "px-2.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider text-white",
+                          (getStatusClasses(selectedProduct.status).split(' ')[1] || "bg-slate-500").replace('text-', 'bg-')
+                        )}>
+                          {selectedProduct.status}
+                        </span>
+                        <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-semibold uppercase tracking-wider border border-slate-200/50">
+                          ID: {selectedProduct._id.slice(-8)}
+                        </span>
+                      </div>
+                      <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">{selectedProduct.name}</h2>
+                    </div>
+                    <Dialog.Close className="h-8 w-8 flex items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors shrink-0">
+                      <IconX size={18} />
+                    </Dialog.Close>
+                  </div>
+
+                  {/* Scrollable details */}
+                  <div className="flex-1 overflow-y-auto p-6 space-y-5 no-scrollbar font-sans">
+                    {/* Valuation & Inventory */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-4 rounded-xl border border-slate-100 bg-slate-50/50">
+                        <div className="flex items-center gap-1.5 text-slate-500 mb-1">
+                          <IconTag size={15} className="text-amber-600" />
+                          <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Valuation</p>
+                        </div>
+                        <p className="text-base font-bold text-slate-900">₹{selectedProduct.price.toLocaleString()}</p>
+                      </div>
+                      <div className="p-4 rounded-xl border border-slate-100 bg-slate-50/50">
+                        <div className="flex items-center gap-1.5 text-slate-500 mb-1">
+                          <IconPackage size={15} className="text-blue-500" />
+                          <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Inventory</p>
+                        </div>
+                        <p className="text-base font-bold text-slate-900">{selectedProduct.stock || 1} Units</p>
+                      </div>
+                    </div>
+
+                    {/* Classification */}
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Classification</label>
+                      <div className="flex flex-wrap gap-2">
+                        <span className="px-2.5 py-1 rounded bg-blue-50 text-blue-700 text-[10px] font-semibold uppercase tracking-wider border border-blue-100">
+                          {selectedProduct.category.name}
+                        </span>
+                        {selectedProduct.subcategory && (
+                          <span className="px-2.5 py-1 rounded bg-amber-50 text-amber-700 text-[10px] font-semibold uppercase tracking-wider border border-amber-100">
+                            {selectedProduct.subcategory.name}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Description */}
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Technical Description</label>
+                      <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        {selectedProduct.description || "No description provided by seller."}
+                      </p>
+                    </div>
+
+                    {/* Seller Origin */}
+                    <div className="p-4 rounded-xl border border-slate-100 bg-slate-50/50">
+                      <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-2.5">Merchant Origin</label>
+                      <div className="flex items-center gap-3">
+                        <div className="h-9 w-9 rounded-lg bg-amber-600 flex items-center justify-center text-white font-bold text-xs shrink-0">
+                          {(selectedProduct.seller.firstName || "U")[0]}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-slate-900 truncate">{selectedProduct.seller.firstName} {selectedProduct.seller.lastName}</p>
+                          <p className="text-[10px] text-slate-500 truncate">{selectedProduct.seller.email}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Location */}
+                    {selectedProduct.location && (
+                      <div className="p-4 rounded-xl border border-slate-100 bg-slate-50/50">
+                        <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-2.5">Listing Location</label>
+                        <div className="space-y-1 text-xs text-slate-600">
+                          {selectedProduct.location.address && (
+                            <p className="truncate"><span className="text-slate-400 font-medium">Address:</span> {selectedProduct.location.address}</p>
+                          )}
+                          {(selectedProduct.location.city || selectedProduct.location.state) && (
+                            <p><span className="text-slate-400 font-medium">City/State:</span> {selectedProduct.location.city || "—"}{selectedProduct.location.state ? `, ${selectedProduct.location.state}` : ""}</p>
+                          )}
+                          {selectedProduct.location.zipcode && (
+                            <p><span className="text-slate-400 font-medium">Zipcode:</span> {selectedProduct.location.zipcode}</p>
+                          )}
+                          {selectedProduct.location.lat !== undefined && selectedProduct.location.lng !== undefined && (
+                            <p><span className="text-slate-400 font-medium">Coordinates:</span> {selectedProduct.location.lat}, {selectedProduct.location.lng}</p>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
 
-                  <div className="flex gap-3">
-                    <button className="h-12 w-12 rounded-2xl border border-border flex items-center justify-center text-muted-foreground hover:bg-white hover:border-[#B5651D] hover:text-[#B5651D] transition-all">
-                      <IconExternalLink size={20} />
-                    </button>
-                    <button className="h-12 w-12 rounded-2xl border border-border flex items-center justify-center text-muted-foreground hover:bg-white hover:text-[#B5651D] hover:text-[#B5651D] transition-all">
-                      <IconMessageCircle size={20} />
-                    </button>
+                  {/* Actions Footer */}
+                  <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-4 shrink-0 rounded-b-2xl">
+                    <div className="flex gap-2">
+                      {selectedProduct.status === 'pending' && (
+                        <>
+                          <button
+                            onClick={() => {
+                              approveMutation.mutate(selectedProduct._id);
+                              setIsDetailsOpen(false);
+                            }}
+                            disabled={approveMutation.isPending}
+                            className="h-9 px-4 rounded-lg bg-emerald-600 text-white text-xs font-semibold flex items-center gap-1.5 hover:bg-emerald-700 active:scale-95 transition-all disabled:opacity-50"
+                          >
+                            <IconCheck size={14} stroke={2.5} />
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => {
+                              rejectMutation.mutate(selectedProduct._id);
+                              setIsDetailsOpen(false);
+                            }}
+                            disabled={rejectMutation.isPending}
+                            className="h-9 px-4 rounded-lg bg-white text-rose-600 border border-slate-200 text-xs font-semibold flex items-center gap-1.5 hover:bg-rose-50 active:scale-95 transition-all disabled:opacity-50"
+                          >
+                            <IconX size={14} stroke={2.5} />
+                            Reject
+                          </button>
+                        </>
+                      )}
+                      {selectedProduct.status !== 'pending' && (
+                        <div className="flex items-center gap-1.5 text-slate-400 text-[10px] font-semibold uppercase tracking-wider">
+                          <IconInfoCircle size={14} />
+                          Status is final
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button className="h-9 w-9 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-white hover:text-slate-600 transition-colors">
+                        <IconExternalLink size={16} />
+                      </button>
+                      <button className="h-9 w-9 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-white hover:text-slate-600 transition-colors">
+                        <IconMessageCircle size={16} />
+                      </button>
+                    </div>
                   </div>
                 </div>
+              </div>
+            )}
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+
+      {/* Product Edit Modal */}
+      <Dialog.Root open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md animate-in fade-in duration-300" />
+          <Dialog.Content className="fixed left-[50%] top-[50%] z-[101] w-full max-w-md translate-x-[-50%] translate-y-[-50%] overflow-hidden rounded-[32px] border-0 bg-card p-0 shadow-2xl outline-none ring-1 ring-black/[0.1] animate-in zoom-in-95 fade-in duration-200">
+            {selectedEditProduct && (
+              <div className="flex flex-col p-6 font-sans space-y-6">
+                <div className="flex items-center justify-between border-b border-border/30 pb-4">
+                  <Dialog.Title className="text-lg font-black text-foreground">Edit Listing Details</Dialog.Title>
+                  <Dialog.Close className="h-8 w-8 flex items-center justify-center rounded-full bg-muted text-muted-foreground hover:bg-muted/80 transition-all">
+                    <IconX size={16} />
+                  </Dialog.Close>
+                </div>
+                <Dialog.Description className="sr-only">Form to update listing name, price, description and status.</Dialog.Description>
+
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  updateMutation.mutate({
+                    id: selectedEditProduct._id,
+                    data: {
+                      name: editName,
+                      price: editPrice,
+                      description: editDescription,
+                      status: editStatus
+                    }
+                  });
+                }} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-widest block">Listing Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      className="h-10 w-full rounded-xl border border-border bg-muted/10 px-3 text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-[#B5651D]/25 focus:border-[#B5651D]/40"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-widest block">Price (₹)</label>
+                    <input
+                      type="number"
+                      required
+                      min="0"
+                      value={editPrice}
+                      onChange={(e) => setEditPrice(Number(e.target.value))}
+                      className="h-10 w-full rounded-xl border border-border bg-muted/10 px-3 text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-[#B5651D]/25 focus:border-[#B5651D]/40"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-widest block">Description</label>
+                    <textarea
+                      rows={3}
+                      value={editDescription}
+                      onChange={(e) => setEditDescription(e.target.value)}
+                      className="w-full rounded-xl border border-border bg-muted/10 p-3 text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-[#B5651D]/25 focus:border-[#B5651D]/40 resize-none"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-widest block">Status</label>
+                    <select
+                      value={editStatus}
+                      onChange={(e) => setEditStatus(e.target.value as any)}
+                      className="h-10 w-full rounded-xl border border-border bg-card px-3 text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-[#B5651D]/25 focus:border-[#B5651D]/40"
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="approved">Approved</option>
+                      <option value="rejected">Rejected</option>
+                      <option value="sold">Sold</option>
+                      <option value="inactive">Inactive</option>
+                    </select>
+                  </div>
+
+                  <div className="pt-4 flex items-center justify-end gap-3 border-t border-border/30">
+                    <Dialog.Close asChild>
+                      <button
+                        type="button"
+                        className="h-10 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest bg-muted text-muted-foreground hover:bg-muted/80 transition-all"
+                      >
+                        Cancel
+                      </button>
+                    </Dialog.Close>
+                    <button
+                      type="submit"
+                      disabled={updateMutation.isPending}
+                      className="h-10 px-5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-[linear-gradient(268.96deg,#B5651D_0.19%,#FE9738_99.72%)] text-white shadow-lg shadow-[#B5651D]/20 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-1.5"
+                    >
+                      {updateMutation.isPending ? (
+                        <IconLoader2 size={14} className="animate-spin" />
+                      ) : (
+                        <IconDeviceFloppy size={14} />
+                      )}
+                      Save Changes
+                    </button>
+                  </div>
+                </form>
               </div>
             )}
           </Dialog.Content>

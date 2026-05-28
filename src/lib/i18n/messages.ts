@@ -111,6 +111,7 @@ export const messages: Record<Locale, Record<string, string>> = {
     "userDetails.searchingFor": "Searching for",
     "userDetails.connectionType": "Connection type",
     "userDetails.photos": "Profile photos",
+    "common.logOut": "ចាកចេញ",
   },
 };
 

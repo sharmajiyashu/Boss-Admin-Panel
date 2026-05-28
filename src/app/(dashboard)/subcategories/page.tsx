@@ -762,132 +762,144 @@ export default function SubcategoriesPage() {
                   <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground/70">
                     Field list
                   </span>
-                  <button
-                    type="button"
-                    onClick={addField}
-                    className="flex h-8 items-center gap-1 rounded-lg bg-muted/50 px-2.5 text-[10px] font-bold text-foreground ring-1 ring-black/[0.06] transition-colors hover:bg-[#B5651D]/10 hover:text-[#B5651D] hover:ring-[#B5651D]/25"
-                  >
-                    <IconPlus size={14} strokeWidth={2.5} />
-                    Add field
-                  </button>
                 </div>
 
                 {formData.customFieldDefinitions.length === 0 ? (
-                  <p className="rounded-xl bg-muted/25 py-6 text-center text-[11px] font-medium leading-snug text-muted-foreground ring-1 ring-dashed ring-black/[0.08]">
-                    No custom fields yet. Add fields only if listings need extra attributes.
-                  </p>
+                  <div className="space-y-4">
+                    <p className="rounded-xl bg-muted/25 py-6 text-center text-[11px] font-medium leading-snug text-muted-foreground ring-1 ring-dashed ring-black/[0.08]">
+                      No custom fields yet. Add fields only if listings need extra attributes.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={addField}
+                      className="flex h-10 w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-border hover:border-[#B5651D]/40 bg-card hover:bg-[#B5651D]/5 text-[11px] font-black uppercase tracking-widest text-[#B5651D] transition-all shadow-sm active:scale-95"
+                    >
+                      <IconPlus size={14} strokeWidth={2.5} />
+                      Add field
+                    </button>
+                  </div>
                 ) : (
-                  <ul className="space-y-3">
-                    {formData.customFieldDefinitions.map((field, idx) => (
-                      <li
-                        key={idx}
-                        className="space-y-3 rounded-xl bg-card p-3 shadow-sm ring-1 ring-black/[0.05]"
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <span className="text-[10px] font-bold text-muted-foreground/60">Field {idx + 1}</span>
-                          <button
-                            type="button"
-                            onClick={() => removeField(idx)}
-                            className="shrink-0 rounded-md p-1 text-muted-foreground hover:bg-red-50 hover:text-red-600"
-                            aria-label="Remove field"
-                          >
-                            <IconX size={14} />
-                          </button>
-                        </div>
-                        <div className="grid gap-2 sm:grid-cols-2">
-                          <div className="space-y-0.5">
-                            <label className="text-[9px] font-bold text-muted-foreground/60">Label</label>
-                            <input
-                              value={field.label}
-                              onChange={(e) => updateField(idx, { label: e.target.value })}
-                              className="h-8 w-full rounded-lg border-0 bg-muted/50 px-2.5 text-[11px] font-semibold text-foreground shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] outline-none focus:ring-2 focus:ring-[#B5651D]/20"
-                              placeholder="Shown to users"
-                            />
-                          </div>
-                          <div className="space-y-0.5">
-                            <label className="text-[9px] font-bold text-muted-foreground/60">Key</label>
-                            <input
-                              value={field.key}
-                              onChange={(e) => updateField(idx, { key: e.target.value })}
-                              className="h-8 w-full rounded-lg border-0 bg-muted/50 px-2.5 font-mono text-[11px] text-foreground shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] outline-none focus:ring-2 focus:ring-[#B5651D]/20"
-                              placeholder="internal_key"
-                            />
-                          </div>
-                        </div>
-                        <div className="flex flex-wrap items-end gap-3">
-                          <div className="min-w-[140px] flex-1 space-y-0.5">
-                            <label className="text-[9px] font-bold text-muted-foreground/60">Type</label>
-                            <NativeSelect
-                              value={field.fieldType}
-                              onChange={(e) => {
-                                const v = e.target.value;
-                                if (isFieldType(v)) updateField(idx, { fieldType: v });
-                              }}
-                              className="h-8 min-h-8 py-1.5 pr-8 text-[11px] font-semibold"
+                  <div className="space-y-4">
+                    <ul className="space-y-3">
+                      {formData.customFieldDefinitions.map((field, idx) => (
+                        <li
+                          key={idx}
+                          className="space-y-3 rounded-xl bg-card p-3 shadow-sm ring-1 ring-black/[0.05]"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <span className="text-[10px] font-bold text-muted-foreground/60">Field {idx + 1}</span>
+                            <button
+                              type="button"
+                              onClick={() => removeField(idx)}
+                              className="shrink-0 rounded-md p-1 text-muted-foreground hover:bg-red-50 hover:text-red-600"
+                              aria-label="Remove field"
                             >
-                              {FIELD_TYPES.map((ft) => (
-                                <option key={ft} value={ft}>
-                                  {ft}
-                                </option>
-                              ))}
-                            </NativeSelect>
+                              <IconX size={14} />
+                            </button>
                           </div>
-                          <label className="flex cursor-pointer items-center gap-2 text-[11px] font-semibold text-foreground">
-                            <input
-                              type="checkbox"
-                              checked={field.isRequired}
-                              onChange={(e) => updateField(idx, { isRequired: e.target.checked })}
-                              className="h-4 w-4 rounded border-border"
-                            />
-                            Required
-                          </label>
-                          <label className="flex cursor-pointer items-center gap-2 text-[11px] font-semibold text-foreground">
-                            <input
-                              type="checkbox"
-                              checked={field.isFilterable}
-                              onChange={(e) => updateField(idx, { isFilterable: e.target.checked })}
-                              className="h-4 w-4 rounded border-border"
-                            />
-                            Filterable
-                          </label>
-                        </div>
-                        {["select", "switch", "checkbox"].includes(field.fieldType) && (
-                          <div className="space-y-2 border-t border-black/[0.06] pt-2">
-                            <div className="flex items-center justify-between">
-                              <span className="text-[9px] font-bold text-muted-foreground/60">Options</span>
-                              <button
-                                type="button"
-                                onClick={() => addOption(idx)}
-                                className="text-[10px] font-bold text-[#B5651D] hover:underline"
+                          <div className="grid gap-2 sm:grid-cols-2">
+                            <div className="space-y-0.5">
+                              <label className="text-[9px] font-bold text-muted-foreground/60">Label</label>
+                              <input
+                                value={field.label}
+                                onChange={(e) => updateField(idx, { label: e.target.value })}
+                                className="h-8 w-full rounded-lg border-0 bg-muted/50 px-2.5 text-[11px] font-semibold text-foreground shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] outline-none focus:ring-2 focus:ring-[#B5651D]/20"
+                                placeholder="Shown to users"
+                              />
+                            </div>
+                            <div className="space-y-0.5">
+                              <label className="text-[9px] font-bold text-muted-foreground/60">Key</label>
+                              <input
+                                value={field.key}
+                                onChange={(e) => updateField(idx, { key: e.target.value })}
+                                className="h-8 w-full rounded-lg border-0 bg-muted/50 px-2.5 font-mono text-[11px] text-foreground shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] outline-none focus:ring-2 focus:ring-[#B5651D]/20"
+                                placeholder="internal_key"
+                              />
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap items-end gap-3">
+                            <div className="min-w-[140px] flex-1 space-y-0.5">
+                              <label className="text-[9px] font-bold text-muted-foreground/60">Type</label>
+                              <NativeSelect
+                                value={field.fieldType}
+                                onChange={(e) => {
+                                  const v = e.target.value;
+                                  if (isFieldType(v)) updateField(idx, { fieldType: v });
+                                }}
+                                className="h-8 min-h-8 py-1.5 pr-8 text-[11px] font-semibold"
                               >
-                                Add option
-                              </button>
+                                {FIELD_TYPES.map((ft) => (
+                                  <option key={ft} value={ft}>
+                                    {ft}
+                                  </option>
+                                ))}
+                              </NativeSelect>
                             </div>
-                            <div className="flex flex-col gap-2">
-                              {field.options?.map((opt, optIdx) => (
-                                <div key={optIdx} className="flex gap-1">
-                                  <input
-                                    value={opt}
-                                    onChange={(e) => updateOption(idx, optIdx, e.target.value)}
-                                    className="h-8 min-w-0 flex-1 rounded-lg border-0 bg-muted/50 px-2 text-[11px] text-foreground shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] outline-none focus:ring-2 focus:ring-[#B5651D]/20"
-                                    placeholder={`Option ${optIdx + 1}`}
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => removeOption(idx, optIdx)}
-                                    className="rounded-lg px-2 text-red-500 hover:bg-red-50"
-                                    aria-label="Remove option"
-                                  >
-                                    <IconX size={14} />
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
+                            <label className="flex cursor-pointer items-center gap-2 text-[11px] font-semibold text-foreground">
+                              <input
+                                type="checkbox"
+                                checked={field.isRequired}
+                                onChange={(e) => updateField(idx, { isRequired: e.target.checked })}
+                                className="h-4 w-4 rounded border-border"
+                              />
+                              Required
+                            </label>
+                            <label className="flex cursor-pointer items-center gap-2 text-[11px] font-semibold text-foreground">
+                              <input
+                                type="checkbox"
+                                checked={field.isFilterable}
+                                onChange={(e) => updateField(idx, { isFilterable: e.target.checked })}
+                                className="h-4 w-4 rounded border-border"
+                              />
+                              Filterable
+                            </label>
                           </div>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
+                          {["select", "switch", "checkbox"].includes(field.fieldType) && (
+                            <div className="space-y-2 border-t border-black/[0.06] pt-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[9px] font-bold text-muted-foreground/60">Options</span>
+                                <button
+                                  type="button"
+                                  onClick={() => addOption(idx)}
+                                  className="text-[10px] font-bold text-[#B5651D] hover:underline"
+                                >
+                                  Add option
+                                </button>
+                              </div>
+                              <div className="flex flex-col gap-2">
+                                {field.options?.map((opt, optIdx) => (
+                                  <div key={optIdx} className="flex gap-1">
+                                    <input
+                                      value={opt}
+                                      onChange={(e) => updateOption(idx, optIdx, e.target.value)}
+                                      className="h-8 min-w-0 flex-1 rounded-lg border-0 bg-muted/50 px-2 text-[11px] text-foreground shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] outline-none focus:ring-2 focus:ring-[#B5651D]/20"
+                                      placeholder={`Option ${optIdx + 1}`}
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => removeOption(idx, optIdx)}
+                                      className="rounded-lg px-2 text-red-500 hover:bg-red-50"
+                                      aria-label="Remove option"
+                                    >
+                                      <IconX size={14} />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                    <button
+                      type="button"
+                      onClick={addField}
+                      className="flex h-10 w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-border hover:border-[#B5651D]/40 bg-card hover:bg-[#B5651D]/5 text-[11px] font-black uppercase tracking-widest text-[#B5651D] transition-all shadow-sm active:scale-95"
+                    >
+                      <IconPlus size={14} strokeWidth={2.5} />
+                      Add field
+                    </button>
+                  </div>
                 )}
               </div>
 

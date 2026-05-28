@@ -1,4 +1,4 @@
-import { get, patch } from "../api";
+import { get, patch, put, deleteRequest } from "../api";
 
 export interface ProductMedia {
   id: string;
@@ -31,6 +31,14 @@ export interface Product {
   stock?: number;
   customFields?: Record<string, any>;
   status: 'pending' | 'approved' | 'rejected' | 'sold' | 'inactive';
+  location?: {
+    lat?: number;
+    lng?: number;
+    address?: string;
+    city?: string;
+    state?: string;
+    zipcode?: string;
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -74,5 +82,19 @@ export const productService = {
    */
   rejectProduct: async (productId: string): Promise<Product> => {
     return patch<Product>(`/admin/products/${productId}/reject`);
+  },
+
+  /**
+   * Delete a product
+   */
+  deleteProduct: async (productId: string): Promise<any> => {
+    return deleteRequest<any>(`/admin/products/${productId}`);
+  },
+
+  /**
+   * Update a product
+   */
+  updateProduct: async (productId: string, data: Partial<Product>): Promise<Product> => {
+    return put<Product>(`/admin/products/${productId}`, data);
   },
 };

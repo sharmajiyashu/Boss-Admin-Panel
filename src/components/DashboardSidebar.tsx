@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { IconLogout, IconUser, IconChevronRight, IconChevronDown } from "@tabler/icons-react";
+import { IconLogout, IconChevronDown } from "@tabler/icons-react";
 import { sidebarNav, isNavSection } from "@/lib/sidebar-nav";
 import React, { useState, useEffect } from "react";
 import { twMerge } from "tailwind-merge";
@@ -172,30 +172,22 @@ export function DashboardSidebar({ isCollapsed = false }: { isCollapsed?: boolea
 
          {/* User Footer */}
          <div className="mt-auto border-t border-sidebar-border/50 p-4">
-            <div className={twMerge(
-               "flex items-center gap-3 rounded-2xl bg-sidebar-accent/50 p-3 transition-all duration-500",
-               isCollapsed ? "justify-center" : "justify-between"
-            )}>
-               {!isCollapsed && (
-                  <div className="flex items-center gap-3">
-                     <div className="h-9 w-9 shrink-0 rounded-lg bg-white shadow-sm flex items-center justify-center text-primary">
-                        <IconUser size={18} />
-                     </div>
-                     <div className="min-w-0">
-                        <p className="truncate text-xs font-semibold text-slate-800">
-                           Account Settings
-                        </p>
-                     </div>
-                  </div>
+            <button
+               onClick={handleLogout}
+               className={twMerge(
+                  "flex w-full items-center gap-3 rounded-2xl p-3 transition-all duration-300",
+                  "bg-red-50/50 hover:bg-red-50 border border-red-100/50 hover:border-red-200 text-red-600 hover:text-red-700",
+                  isCollapsed ? "justify-center" : "justify-start"
                )}
-               <button
-                  onClick={handleLogout}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-all hover:bg-red-50 hover:text-red-500"
-                  title={t("common.logOut")}
-               >
-                  <IconLogout size={18} />
-               </button>
-            </div>
+               title={t("common.logOut")}
+            >
+               <IconLogout size={18} className="shrink-0" />
+               {!isCollapsed && (
+                  <span className="text-xs font-bold uppercase tracking-wider animate-in fade-in slide-in-from-left-2 duration-300">
+                     {t("common.logOut")}
+                  </span>
+               )}
+            </button>
          </div>
       </aside>
    );

@@ -11,7 +11,7 @@ import {
   IconShoppingBag,
   IconChartBar,
   IconInfoCircle,
-  IconCurrencyDollar,
+  IconCurrencyRupee,
   IconListDetails,
 } from "@tabler/icons-react";
 import { twMerge } from "tailwind-merge";
@@ -61,7 +61,7 @@ export default function DashboardPage() {
     {
       title: "Today's Revenue",
       value: `₹ ${(stats?.revenue?.today ?? 0).toLocaleString()}`,
-      icon: IconCurrencyDollar,
+      icon: IconCurrencyRupee,
       gradient: "var(--brand-gradient-pink)",
       trend: revenueTrend,
     },

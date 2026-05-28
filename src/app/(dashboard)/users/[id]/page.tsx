@@ -22,7 +22,13 @@ import {
   IconUser,
   IconClock,
   IconWallet,
+  IconEdit,
+  IconTrash,
+  IconX,
+  IconDeviceFloppy
 } from "@tabler/icons-react";
+import * as Dialog from "@radix-ui/react-dialog";
+import { productService } from "@/lib/services/productService";
 import { twMerge } from "tailwind-merge";
 import {
   userService,
@@ -81,6 +87,48 @@ export default function UserDetailPage() {
     },
     onError: (error: unknown) => toast.error(getErrorMessage(error, "Action failed")),
   });
+
+  const deleteProductMutation = useMutation({
+    mutationFn: (id: string) => productService.deleteProduct(id),
+    onSuccess: () => {
+      toast.success("Product deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["user-listings", userId] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to delete product");
+    },
+  });
+
+  const updateProductMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<any> }) =>
+      productService.updateProduct(id, data),
+    onSuccess: () => {
+      toast.success("Product updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["user-listings", userId] });
+      setIsEditOpen(false);
+      setSelectedEditProduct(null);
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to update product");
+    },
+  });
+
+  // ── Edit State ──
+  const [selectedEditProduct, setSelectedEditProduct] = useState<UserListing | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editPrice, setEditPrice] = useState<number>(0);
+  const [editDescription, setEditDescription] = useState("");
+  const [editStatus, setEditStatus] = useState<"pending" | "approved" | "rejected" | "sold" | "inactive">("pending");
+
+  const openEdit = (product: UserListing) => {
+    setSelectedEditProduct(product);
+    setEditName(product.name);
+    setEditPrice(product.price);
+    setEditDescription(product.description || "");
+    setEditStatus(product.status);
+    setIsEditOpen(true);
+  };
 
   // ── Helpers ──
   const UserAvatar = ({ u, size = "h-10 w-10" }: { u: IUser; size?: string }) => {
@@ -200,368 +248,541 @@ export default function UserDetailPage() {
         </div>
       </div>
 
-      {/* ─── DETAIL TAB ─── */}
-      {activeTab === "detail" && (
-        <div className="grid gap-5 md:grid-cols-2 animate-in fade-in duration-300">
-          {/* Quick Stats Row */}
-          <div className="md:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {[
-              { label: "Wallet", value: `₹${(user.walletBalance ?? 0).toLocaleString()}`, icon: IconWallet, color: "text-slate-800" },
-              { label: "Platform Fee", value: user.isPlatformPaid ? "Paid" : "Unpaid", icon: IconCoin, color: user.isPlatformPaid ? "text-emerald-600" : "text-rose-500" },
-              { label: "Status", value: user.isBlocked ? "Blocked" : "Active", icon: IconShieldCheck, color: user.isBlocked ? "text-rose-500" : "text-emerald-600" },
-              { label: "Joined", value: new Date(user.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "2-digit" }), icon: IconClock, color: "text-slate-800" },
-            ].map((stat) => (
-              <div key={stat.label} className="rounded-xl bg-white p-4 border border-slate-100 shadow-sm">
-                <div className="flex items-center gap-2 mb-2">
-                  <stat.icon size={13} className="text-slate-400" />
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
-                </div>
-                <p className={twMerge("text-sm font-bold", stat.color)}>{stat.value}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Contact */}
-          <div className="rounded-xl bg-white border border-slate-100 shadow-sm overflow-hidden">
-            <div className="px-5 py-3 border-b border-slate-50">
-              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Contact</h3>
-            </div>
-            <div className="divide-y divide-slate-50">
-              <div className="flex items-center gap-3 px-5 py-3">
-                <IconMail size={14} className="text-[#B5651D]/40 shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-[12px] font-bold text-slate-700 truncate">{user.email}</p>
-                  <p className="text-[9px] text-slate-400">{user.isEmailVerified ? "Verified" : "Not verified"}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 px-5 py-3">
-                <IconPhone size={14} className="text-[#B5651D]/40 shrink-0" />
-                <p className="text-[12px] font-bold text-slate-700">{user.mobile || "Not provided"}</p>
-              </div>
-              <div className="flex items-center gap-3 px-5 py-3">
-                <IconMapPin size={14} className="text-[#B5651D]/40 shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-[12px] font-bold text-slate-700">
-                    {user.location?.city || "—"}{user.location?.state ? `, ${user.location.state}` : ""}
-                  </p>
-                  {user.location?.address && <p className="text-[9px] text-slate-400 truncate">{user.location.address}</p>}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Verification */}
-          <div className="rounded-xl bg-white border border-slate-100 shadow-sm overflow-hidden">
-            <div className="px-5 py-3 border-b border-slate-50">
-              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Verification</h3>
-            </div>
-            <div className="divide-y divide-slate-50">
+      {/* ── Tab Content Container ── */}
+      <div className="border border-slate-100 bg-slate-50/40 rounded-[24px] p-6 shadow-sm min-h-[400px]">
+        {/* ─── DETAIL TAB ─── */}
+        {activeTab === "detail" && (
+          <div className="grid gap-5 md:grid-cols-2 animate-in fade-in duration-300">
+            {/* Quick Stats Row */}
+            <div className="md:col-span-2 grid grid-cols-2 sm:grid-cols-3 gap-3">
               {[
-                { label: "Identity", icon: IconShieldCheck, status: user.isVerified, trueLabel: "Verified", falseLabel: "Pending", trueClass: "bg-blue-50 text-blue-600", falseClass: "bg-slate-50 text-slate-400" },
-                {
-                  label: "Aadhaar KYC", icon: IconId, status: user.aadhaarVerification?.status === "verified", trueLabel: user.aadhaarVerification?.status || "Pending", falseLabel: user.aadhaarVerification?.status || "Pending",
-                  trueClass: "bg-emerald-50 text-emerald-600",
-                  falseClass: user.aadhaarVerification?.status === "failed" ? "bg-rose-50 text-rose-600" : "bg-slate-50 text-slate-400"
-                },
-                { label: "Platform Fee", icon: IconCash, status: user.isPlatformPaid, trueLabel: "Paid", falseLabel: "Unpaid", trueClass: "bg-emerald-50 text-emerald-600", falseClass: "bg-rose-50 text-rose-500" },
-                { label: "Premium", icon: IconRosetteFilled, status: user.isPremium, trueLabel: "Active", falseLabel: "No", trueClass: "bg-amber-50 text-amber-600", falseClass: "bg-slate-50 text-slate-400" },
-              ].map((item) => (
-                <div key={item.label} className="flex items-center justify-between px-5 py-3">
-                  <div className="flex items-center gap-2">
-                    <item.icon size={14} className="text-slate-300" />
-                    <span className="text-[12px] font-bold text-slate-700">{item.label}</span>
+                { label: "Platform Fee", value: user.isPlatformPaid ? "Paid" : "Unpaid", icon: IconCoin, color: user.isPlatformPaid ? "text-emerald-600" : "text-rose-500" },
+                { label: "Status", value: user.isBlocked ? "Blocked" : "Active", icon: IconShieldCheck, color: user.isBlocked ? "text-rose-500" : "text-emerald-600" },
+                { label: "Joined", value: new Date(user.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "2-digit" }), icon: IconClock, color: "text-slate-800" },
+              ].map((stat) => (
+                <div key={stat.label} className="rounded-xl bg-white p-4 border border-slate-100 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <stat.icon size={13} className="text-slate-400" />
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
                   </div>
-                  <span className={twMerge("px-2 py-0.5 rounded-md text-[9px] font-black uppercase", item.status ? item.trueClass : item.falseClass)}>
-                    {item.status ? item.trueLabel : item.falseLabel}
-                  </span>
+                  <p className={twMerge("text-sm font-bold", stat.color)}>{stat.value}</p>
                 </div>
               ))}
             </div>
-          </div>
 
-          {/* Account Meta */}
-          <div className="md:col-span-2 rounded-xl bg-white border border-slate-100 shadow-sm overflow-hidden">
-            <div className="px-5 py-3 border-b border-slate-50">
-              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Account</h3>
-            </div>
-            <div className="grid sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-slate-50">
+            {/* Contact */}
+            <div className="rounded-xl bg-white border border-slate-100 shadow-sm overflow-hidden">
+              <div className="px-5 py-3 border-b border-slate-50">
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Contact Information</h3>
+              </div>
               <div className="divide-y divide-slate-50">
-                <div className="flex items-center justify-between px-5 py-2.5">
-                  <span className="text-[11px] text-slate-400">User ID</span>
-                  <span className="text-[10px] font-mono text-slate-500">{(user._id || user.id).slice(-12)}</span>
+                <div className="flex items-center gap-3 px-5 py-3">
+                  <IconMail size={14} className="text-[#B5651D]/40 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-[12px] font-bold text-slate-700 truncate">{user.email}</p>
+                    <p className="text-[9px] text-slate-400">{user.isEmailVerified ? "Verified" : "Not verified"}</p>
+                  </div>
                 </div>
-                {user.lastLoginAt && (
-                  <div className="flex items-center justify-between px-5 py-2.5">
-                    <span className="text-[11px] text-slate-400">Last Login</span>
-                    <span className="text-[11px] font-bold text-slate-600">
-                      {new Date(user.lastLoginAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                <div className="flex items-center gap-3 px-5 py-3">
+                  <IconPhone size={14} className="text-[#B5651D]/40 shrink-0" />
+                  <p className="text-[12px] font-bold text-slate-700">{user.mobile || "Not provided"}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Verification */}
+            <div className="rounded-xl bg-white border border-slate-100 shadow-sm overflow-hidden">
+              <div className="px-5 py-3 border-b border-slate-50">
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Verification Status</h3>
+              </div>
+              <div className="divide-y divide-slate-50">
+                {[
+                  { label: "Identity", icon: IconShieldCheck, status: user.isVerified, trueLabel: "Verified", falseLabel: "Pending", trueClass: "bg-blue-50 text-blue-600", falseClass: "bg-slate-50 text-slate-400" },
+                  {
+                    label: "Aadhaar KYC", icon: IconId, status: user.aadhaarVerification?.status === "verified", trueLabel: user.aadhaarVerification?.status || "Pending", falseLabel: user.aadhaarVerification?.status || "Pending",
+                    trueClass: "bg-emerald-50 text-emerald-600",
+                    falseClass: user.aadhaarVerification?.status === "failed" ? "bg-rose-50 text-rose-600" : "bg-slate-50 text-slate-400"
+                  },
+                  { label: "Platform Fee", icon: IconCash, status: user.isPlatformPaid, trueLabel: "Paid", falseLabel: "Unpaid", trueClass: "bg-emerald-50 text-emerald-600", falseClass: "bg-rose-50 text-rose-500" },
+                  { label: "Premium", icon: IconRosetteFilled, status: user.isPremium, trueLabel: "Active", falseLabel: "No", trueClass: "bg-amber-50 text-amber-600", falseClass: "bg-slate-50 text-slate-400" },
+                ].map((item) => (
+                  <div key={item.label} className="flex items-center justify-between px-5 py-3">
+                    <div className="flex items-center gap-2">
+                      <item.icon size={14} className="text-slate-300" />
+                      <span className="text-[12px] font-bold text-slate-700">{item.label}</span>
+                    </div>
+                    <span className={twMerge("px-2 py-0.5 rounded-md text-[9px] font-black uppercase", item.status ? item.trueClass : item.falseClass)}>
+                      {item.status ? item.trueLabel : item.falseLabel}
                     </span>
                   </div>
-                )}
-                {user.referralCode && (
+                ))}
+              </div>
+            </div>
+
+            {/* Location details */}
+            <div className="rounded-xl bg-white border border-slate-100 shadow-sm overflow-hidden md:col-span-2">
+              <div className="px-5 py-3 border-b border-slate-50 flex items-center gap-2">
+                <IconMapPin size={14} className="text-[#B5651D]" />
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Location Details</h3>
+              </div>
+              <div className="p-5 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+                <div>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">Address</span>
+                  <span className="text-[12px] font-bold text-slate-700">{user.location?.address || "—"}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">City / Town</span>
+                  <span className="text-[12px] font-bold text-slate-700">{user.location?.city || "—"}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">State</span>
+                  <span className="text-[12px] font-bold text-slate-700">{user.location?.state || "—"}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">Zipcode</span>
+                  <span className="text-[12px] font-bold text-slate-700">{user.location?.zipcode || "—"}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">Latitude</span>
+                  <span className="text-[12px] font-bold text-slate-700">{user.location?.lat !== undefined ? user.location.lat : "—"}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">Longitude</span>
+                  <span className="text-[12px] font-bold text-slate-700">{user.location?.lng !== undefined ? user.location.lng : "—"}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Account Meta */}
+            <div className="md:col-span-2 rounded-xl bg-white border border-slate-100 shadow-sm overflow-hidden">
+              <div className="px-5 py-3 border-b border-slate-50">
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Account Details</h3>
+              </div>
+              <div className="grid sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-slate-50">
+                <div className="divide-y divide-slate-50">
                   <div className="flex items-center justify-between px-5 py-2.5">
-                    <span className="text-[11px] text-slate-400">Referral Code</span>
-                    <span className="text-[11px] font-mono font-bold text-[#B5651D]">{user.referralCode}</span>
+                    <span className="text-[11px] text-slate-400">User ID</span>
+                    <span className="text-[10px] font-mono text-slate-500">{(user._id || user.id).slice(-12)}</span>
                   </div>
-                )}
-              </div>
-              <div className="px-5 py-3">
-                <p className="text-[10px] font-bold text-slate-400 uppercase mb-1.5">Bio</p>
-                <p className="text-[12px] text-slate-600 leading-relaxed">{user.bio || "No bio provided"}</p>
+                  {user.lastLoginAt && (
+                    <div className="flex items-center justify-between px-5 py-2.5">
+                      <span className="text-[11px] text-slate-400">Last Login</span>
+                      <span className="text-[11px] font-bold text-slate-600">
+                        {new Date(user.lastLoginAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                      </span>
+                    </div>
+                  )}
+                  {user.referralCode && (
+                    <div className="flex items-center justify-between px-5 py-2.5">
+                      <span className="text-[11px] text-slate-400">Referral Code</span>
+                      <span className="text-[11px] font-mono font-bold text-[#B5651D]">{user.referralCode}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="px-5 py-3">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase mb-1.5">Bio</p>
+                  <p className="text-[12px] text-slate-600 leading-relaxed">{user.bio || "No bio provided"}</p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* ─── LISTINGS TAB ─── */}
-      {activeTab === "listings" && (
-        <div className="space-y-4 animate-in fade-in duration-300">
-          {/* Status Filters */}
-          <div className="flex flex-wrap gap-2">
-            {[
-              { value: "", label: "All" },
-              { value: "approved", label: "Approved" },
-              { value: "pending", label: "Pending Review" },
-              { value: "rejected", label: "Rejected" },
-              { value: "sold", label: "Sold" },
-              { value: "inactive", label: "Inactive" },
-            ].map((f) => (
-              <button
-                key={f.value}
-                onClick={() => setListingStatusFilter(f.value)}
-                className={twMerge(
-                  "h-8 px-3.5 rounded-lg text-[10px] font-bold transition-all border",
-                  listingStatusFilter === f.value
-                    ? "bg-[#B5651D] text-white border-[#B5651D] shadow-sm"
-                    : "bg-white text-slate-500 border-slate-100 hover:border-slate-200"
-                )}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
+        {/* ─── LISTINGS TAB ─── */}
+        {activeTab === "listings" && (
+          <div className="space-y-4 animate-in fade-in duration-300">
+            {/* Status Filters */}
+            <div className="flex flex-wrap gap-2">
+              {[
+                { value: "", label: "All" },
+                { value: "approved", label: "Approved" },
+                { value: "pending", label: "Pending Review" },
+                { value: "rejected", label: "Rejected" },
+                { value: "sold", label: "Sold" },
+                { value: "inactive", label: "Inactive" },
+              ].map((f) => (
+                <button
+                  key={f.value}
+                  onClick={() => setListingStatusFilter(f.value)}
+                  className={twMerge(
+                    "h-8 px-3.5 rounded-lg text-[10px] font-bold transition-all border",
+                    listingStatusFilter === f.value
+                      ? "bg-[#B5651D] text-white border-[#B5651D] shadow-sm"
+                      : "bg-white text-slate-500 border-slate-100 hover:border-slate-200"
+                  )}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
 
-          {isListingsLoading ? (
-            <div className="flex h-40 items-center justify-center rounded-xl bg-white border border-slate-100">
-              <IconLoader2 className="h-6 w-6 animate-spin text-[#B5651D]/30" />
-            </div>
-          ) : !listings || listings.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-40 rounded-xl bg-white border border-slate-100 shadow-sm">
-              <IconPackage size={28} className="text-slate-200 mb-2" />
-              <p className="text-[11px] font-bold text-slate-400">No listings found</p>
-            </div>
-          ) : (
-            <div className="rounded-xl bg-white border border-slate-100 shadow-sm overflow-hidden">
-              {/* Desktop Table */}
-              <div className="hidden sm:block">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-50">
-                      <th className="px-5 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest">Product</th>
-                      <th className="px-4 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest">Category</th>
-                      <th className="px-4 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Price</th>
-                      <th className="px-4 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Status</th>
-                      <th className="px-4 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Date</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-50">
-                    {listings.map((item) => (
-                      <tr key={item._id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-5 py-3">
-                          <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-lg bg-slate-100 overflow-hidden shrink-0 relative">
-                              {item.media?.[0]?.url ? (
-                                <Image src={item.media[0].url} alt="" fill className="object-cover" />
-                              ) : (
-                                <div className="h-full w-full flex items-center justify-center"><IconPackage size={14} className="text-slate-300" /></div>
-                              )}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-[12px] font-bold text-slate-700 truncate">{item.name}</p>
-                              {item.description && <p className="text-[10px] text-slate-400 truncate max-w-[200px]">{item.description}</p>}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className="text-[11px] font-bold text-slate-600">{item.category?.name || "—"}</span>
-                          {item.subcategory && <p className="text-[10px] text-slate-400">{item.subcategory.name}</p>}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <span className="text-[12px] font-black text-slate-800">₹{item.price?.toLocaleString()}</span>
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <StatusBadge status={item.status} />
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <span className="text-[10px] text-slate-400">
-                            {new Date(item.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
-                          </span>
-                        </td>
+            {isListingsLoading ? (
+              <div className="flex h-40 items-center justify-center rounded-xl bg-white border border-slate-100">
+                <IconLoader2 className="h-6 w-6 animate-spin text-[#B5651D]/30" />
+              </div>
+            ) : !listings || listings.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-40 rounded-xl bg-white border border-slate-100 shadow-sm">
+                <IconPackage size={28} className="text-slate-200 mb-2" />
+                <p className="text-[11px] font-bold text-slate-400">No listings found</p>
+              </div>
+            ) : (
+              <div className="rounded-xl bg-white border border-slate-100 shadow-sm overflow-hidden">
+                {/* Desktop Table */}
+                <div className="hidden sm:block overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-slate-50">
+                        <th className="px-5 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest">Product</th>
+                        <th className="px-4 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest">Category</th>
+                        <th className="px-4 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Price</th>
+                        <th className="px-4 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Status</th>
+                        <th className="px-4 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Date</th>
+                        <th className="px-4 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                      {listings.map((item) => (
+                        <tr key={item._id} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="px-5 py-3">
+                            <div className="flex items-center gap-3">
+                              <div className="h-9 w-9 rounded-lg bg-slate-100 overflow-hidden shrink-0 relative">
+                                {item.media?.[0]?.url ? (
+                                  <Image src={item.media[0].url} alt="" fill className="object-cover" />
+                                ) : (
+                                  <div className="h-full w-full flex items-center justify-center"><IconPackage size={14} className="text-slate-300" /></div>
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-[12px] font-bold text-slate-700 truncate">{item.name}</p>
+                                {item.description && <p className="text-[10px] text-slate-400 truncate max-w-[200px]">{item.description}</p>}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="text-[11px] font-bold text-slate-600">{item.category?.name || "—"}</span>
+                            {item.subcategory && <p className="text-[10px] text-slate-400">{item.subcategory.name}</p>}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <span className="text-[12px] font-black text-slate-800">₹{item.price?.toLocaleString()}</span>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <StatusBadge status={item.status} />
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <span className="text-[10px] text-slate-400">
+                              {new Date(item.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center justify-center gap-1.5">
+                              <button
+                                onClick={() => openEdit(item)}
+                                className="h-8 w-8 rounded-lg flex items-center justify-center text-blue-500 hover:bg-blue-50 border border-transparent hover:border-blue-100 transition-all active:scale-95 shadow-none hover:shadow-sm"
+                                title="Edit Product"
+                              >
+                                <IconEdit size={16} stroke={2} />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (window.confirm("Are you sure you want to delete this listing?")) {
+                                    deleteProductMutation.mutate(item._id);
+                                  }
+                                }}
+                                disabled={deleteProductMutation.isPending}
+                                className="h-8 w-8 rounded-lg flex items-center justify-center text-rose-500 hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-all active:scale-95 shadow-none hover:shadow-sm disabled:opacity-50"
+                                title="Delete Product"
+                              >
+                                <IconTrash size={16} stroke={2} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
 
-              {/* Mobile Cards */}
-              <div className="sm:hidden divide-y divide-slate-50">
-                {listings.map((item) => (
-                  <div key={item._id} className="flex items-center gap-3 p-4">
-                    <div className="h-11 w-11 rounded-lg bg-slate-100 overflow-hidden shrink-0 relative">
-                      {item.media?.[0]?.url ? (
-                        <Image src={item.media[0].url} alt="" fill className="object-cover" />
+                {/* Mobile Cards */}
+                <div className="sm:hidden divide-y divide-slate-50">
+                  {listings.map((item) => (
+                    <div key={item._id} className="p-4 space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="h-11 w-11 rounded-lg bg-slate-100 overflow-hidden shrink-0 relative">
+                          {item.media?.[0]?.url ? (
+                            <Image src={item.media[0].url} alt="" fill className="object-cover" />
+                          ) : (
+                            <div className="h-full w-full flex items-center justify-center"><IconPackage size={16} className="text-slate-300" /></div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[12px] font-bold text-slate-700 truncate">{item.name}</p>
+                          <p className="text-[10px] text-slate-400">₹{item.price?.toLocaleString()} · {item.category?.name || "—"}</p>
+                        </div>
+                        <StatusBadge status={item.status} />
+                      </div>
+                      <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-50">
+                        <button
+                          onClick={() => openEdit(item)}
+                          className="h-8 px-3 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 text-[10px] font-bold flex items-center justify-center gap-1 active:scale-95 transition-all"
+                        >
+                          <IconEdit size={14} /> Edit
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (window.confirm("Are you sure you want to delete this listing?")) {
+                              deleteProductMutation.mutate(item._id);
+                            }
+                          }}
+                          disabled={deleteProductMutation.isPending}
+                          className="h-8 px-3 rounded-lg bg-rose-50 text-rose-600 border border-rose-100 text-[10px] font-bold flex items-center justify-center gap-1 active:scale-95 transition-all disabled:opacity-50"
+                        >
+                          <IconTrash size={14} /> Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ─── INTERESTS TAB ─── */}
+        {activeTab === "interests" && (
+          <div className="space-y-4 animate-in fade-in duration-300">
+            <p className="text-[11px] text-slate-400">Users who have interacted with this account via chat.</p>
+            {isInterestsLoading ? (
+              <div className="flex h-40 items-center justify-center rounded-xl bg-white border border-slate-100">
+                <IconLoader2 className="h-6 w-6 animate-spin text-[#B5651D]/30" />
+              </div>
+            ) : !interests || interests.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-40 rounded-xl bg-white border border-slate-100 shadow-sm">
+                <IconMessageCircle size={28} className="text-slate-200 mb-2" />
+                <p className="text-[11px] font-bold text-slate-400">No interactions yet</p>
+              </div>
+            ) : (
+              <div className="rounded-xl bg-white border border-slate-100 shadow-sm overflow-hidden divide-y divide-slate-50">
+                {interests.map((item) => (
+                  <div key={item._id} className="flex items-center gap-3 px-5 py-3.5 hover:bg-slate-50/50 transition-colors">
+                    <div className="h-9 w-9 rounded-xl bg-slate-100 flex items-center justify-center shrink-0 overflow-hidden relative">
+                      {item.user?.profileImage?.url ? (
+                        <Image src={item.user.profileImage.url} alt="" fill className="object-cover" />
                       ) : (
-                        <div className="h-full w-full flex items-center justify-center"><IconPackage size={16} className="text-slate-300" /></div>
+                        <span className="text-[10px] font-black text-slate-400 uppercase">
+                          {(item.user?.firstName?.[0] || "") + (item.user?.lastName?.[0] || "")}
+                        </span>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[12px] font-bold text-slate-700 truncate">{item.name}</p>
-                      <p className="text-[10px] text-slate-400">₹{item.price?.toLocaleString()} · {item.category?.name || "—"}</p>
-                    </div>
-                    <StatusBadge status={item.status} />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ─── INTERESTS TAB ─── */}
-      {activeTab === "interests" && (
-        <div className="space-y-4 animate-in fade-in duration-300">
-          <p className="text-[11px] text-slate-400">Users who have interacted with this account via chat.</p>
-          {isInterestsLoading ? (
-            <div className="flex h-40 items-center justify-center rounded-xl bg-white border border-slate-100">
-              <IconLoader2 className="h-6 w-6 animate-spin text-[#B5651D]/30" />
-            </div>
-          ) : !interests || interests.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-40 rounded-xl bg-white border border-slate-100 shadow-sm">
-              <IconMessageCircle size={28} className="text-slate-200 mb-2" />
-              <p className="text-[11px] font-bold text-slate-400">No interactions yet</p>
-            </div>
-          ) : (
-            <div className="rounded-xl bg-white border border-slate-100 shadow-sm overflow-hidden divide-y divide-slate-50">
-              {interests.map((item) => (
-                <div key={item._id} className="flex items-center gap-3 px-5 py-3.5 hover:bg-slate-50/50 transition-colors">
-                  <div className="h-9 w-9 rounded-xl bg-slate-100 flex items-center justify-center shrink-0 overflow-hidden relative">
-                    {item.user?.profileImage?.url ? (
-                      <Image src={item.user.profileImage.url} alt="" fill className="object-cover" />
-                    ) : (
-                      <span className="text-[10px] font-black text-slate-400 uppercase">
-                        {(item.user?.firstName?.[0] || "") + (item.user?.lastName?.[0] || "")}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[12px] font-bold text-slate-700 truncate">
-                      {item.user?.firstName} {item.user?.lastName}
-                    </p>
-                    <p className="text-[10px] text-slate-400 truncate">{item.user?.email}</p>
-                  </div>
-                  <div className="text-right shrink-0 max-w-[140px]">
-                    {item.lastMessage && (
-                      <p className="text-[10px] text-slate-500 truncate">&ldquo;{item.lastMessage}&rdquo;</p>
-                    )}
-                    {item.lastMessageAt && (
-                      <p className="text-[9px] text-slate-300 flex items-center gap-1 justify-end mt-0.5">
-                        <IconClock size={9} />
-                        {new Date(item.lastMessageAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                      <p className="text-[12px] font-bold text-slate-700 truncate">
+                        {item.user?.firstName} {item.user?.lastName}
                       </p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ─── PAYMENTS TAB ─── */}
-      {activeTab === "payments" && (
-        <div className="space-y-4 animate-in fade-in duration-300">
-          {isPaymentsLoading ? (
-            <div className="flex h-40 items-center justify-center rounded-xl bg-white border border-slate-100">
-              <IconLoader2 className="h-6 w-6 animate-spin text-[#B5651D]/30" />
-            </div>
-          ) : !payments || payments.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-40 rounded-xl bg-white border border-slate-100 shadow-sm">
-              <IconWallet size={28} className="text-slate-200 mb-2" />
-              <p className="text-[11px] font-bold text-slate-400">No payments recorded</p>
-            </div>
-          ) : (
-            <div className="rounded-xl bg-white border border-slate-100 shadow-sm overflow-hidden">
-              <div className="hidden sm:block">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-50">
-                      <th className="px-5 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest">Type</th>
-                      <th className="px-4 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Amount</th>
-                      <th className="px-4 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Status</th>
-                      <th className="px-4 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest">Order ID</th>
-                      <th className="px-5 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Date</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-50">
-                    {payments.map((p) => (
-                      <tr key={p._id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-5 py-3">
-                          <span className={twMerge(
-                            "px-2.5 py-1 rounded-lg text-[9px] font-black uppercase",
-                            p.paymentType === "platform_fee" ? "bg-[#B5651D]/10 text-[#B5651D]"
-                              : p.paymentType === "wallet_topup" ? "bg-blue-50 text-blue-600"
-                                : "bg-slate-50 text-slate-500"
-                          )}>
-                            {p.paymentType.replace(/_/g, " ")}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <span className="text-[12px] font-black text-slate-800">₹{p.amount?.toLocaleString()}</span>
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <StatusBadge status={p.status} />
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className="text-[10px] font-mono text-slate-400">{p.razorpayOrderId}</span>
-                        </td>
-                        <td className="px-5 py-3 text-right">
-                          <span className="text-[10px] text-slate-400">
-                            {new Date(p.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "2-digit" })}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Mobile Cards */}
-              <div className="sm:hidden divide-y divide-slate-50">
-                {payments.map((p) => (
-                  <div key={p._id} className="p-4 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className={twMerge(
-                        "px-2.5 py-1 rounded-lg text-[9px] font-black uppercase",
-                        p.paymentType === "platform_fee" ? "bg-[#B5651D]/10 text-[#B5651D]" : "bg-blue-50 text-blue-600"
-                      )}>
-                        {p.paymentType.replace(/_/g, " ")}
-                      </span>
-                      <span className="text-[13px] font-black text-slate-800">₹{p.amount?.toLocaleString()}</span>
+                      <p className="text-[10px] text-slate-400 truncate">{item.user?.email}</p>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <StatusBadge status={p.status} />
-                      <span className="text-[10px] text-slate-400">
-                        {new Date(p.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "2-digit" })}
-                      </span>
+                    <div className="text-right shrink-0 max-w-[140px]">
+                      {item.lastMessageAt && (
+                        <p className="text-[9px] text-slate-300 flex items-center gap-1 justify-end mt-0.5">
+                          <IconClock size={9} />
+                          {new Date(item.lastMessageAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                        </p>
+                      )}
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
-          )}
-        </div>
-      )}
+            )}
+          </div>
+        )}
+
+        {/* ─── PAYMENTS TAB ─── */}
+        {activeTab === "payments" && (
+          <div className="space-y-4 animate-in fade-in duration-300">
+            {isPaymentsLoading ? (
+              <div className="flex h-40 items-center justify-center rounded-xl bg-white border border-slate-100">
+                <IconLoader2 className="h-6 w-6 animate-spin text-[#B5651D]/30" />
+              </div>
+            ) : !payments || payments.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-40 rounded-xl bg-white border border-slate-100 shadow-sm">
+                <IconWallet size={28} className="text-slate-200 mb-2" />
+                <p className="text-[11px] font-bold text-slate-400">No payments recorded</p>
+              </div>
+            ) : (
+              <div className="rounded-xl bg-white border border-slate-100 shadow-sm overflow-hidden">
+                <div className="hidden sm:block overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-slate-50">
+                        <th className="px-5 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest">Type</th>
+                        <th className="px-4 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Amount</th>
+                        <th className="px-4 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Status</th>
+                        <th className="px-4 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest">Order ID</th>
+                        <th className="px-5 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                      {payments.map((p) => (
+                        <tr key={p._id} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="px-5 py-3">
+                            <span className={twMerge(
+                              "px-2.5 py-1 rounded-lg text-[9px] font-black uppercase",
+                              p.paymentType === "platform_fee" ? "bg-[#B5651D]/10 text-[#B5651D]"
+                                : p.paymentType === "wallet_topup" ? "bg-blue-50 text-blue-600"
+                                  : "bg-slate-50 text-slate-500"
+                            )}>
+                              {p.paymentType.replace(/_/g, " ")}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <span className="text-[12px] font-black text-slate-800">₹{p.amount?.toLocaleString()}</span>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <StatusBadge status={p.status} />
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="text-[10px] font-mono text-slate-400">{p.razorpayOrderId}</span>
+                          </td>
+                          <td className="px-5 py-3 text-right">
+                            <span className="text-[10px] text-slate-400">
+                              {new Date(p.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "2-digit" })}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile Cards */}
+                <div className="sm:hidden divide-y divide-slate-50">
+                  {payments.map((p) => (
+                    <div key={p._id} className="p-4 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className={twMerge(
+                          "px-2.5 py-1 rounded-lg text-[9px] font-black uppercase",
+                          p.paymentType === "platform_fee" ? "bg-[#B5651D]/10 text-[#B5651D]" : "bg-blue-50 text-blue-600"
+                        )}>
+                          {p.paymentType.replace(/_/g, " ")}
+                        </span>
+                        <span className="text-[13px] font-black text-slate-800">₹{p.amount?.toLocaleString()}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <StatusBadge status={p.status} />
+                        <span className="text-[10px] text-slate-400">
+                          {new Date(p.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "2-digit" })}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Product Edit Modal */}
+      <Dialog.Root open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md animate-in fade-in duration-300" />
+          <Dialog.Content className="fixed left-[50%] top-[50%] z-[101] w-full max-w-md translate-x-[-50%] translate-y-[-50%] overflow-hidden rounded-[32px] border-0 bg-card p-0 shadow-2xl outline-none ring-1 ring-black/[0.1] animate-in zoom-in-95 fade-in duration-200">
+            {selectedEditProduct && (
+              <div className="flex flex-col p-6 font-sans space-y-6">
+                <div className="flex items-center justify-between border-b border-border/30 pb-4">
+                  <Dialog.Title className="text-lg font-black text-foreground">Edit Listing Details</Dialog.Title>
+                  <Dialog.Close className="h-8 w-8 flex items-center justify-center rounded-full bg-muted text-muted-foreground hover:bg-muted/80 transition-all">
+                    <IconX size={16} />
+                  </Dialog.Close>
+                </div>
+                <Dialog.Description className="sr-only">Form to update listing name, price, description and status.</Dialog.Description>
+
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  updateProductMutation.mutate({
+                    id: selectedEditProduct._id,
+                    data: {
+                      name: editName,
+                      price: editPrice,
+                      description: editDescription,
+                      status: editStatus
+                    }
+                  });
+                }} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-widest block">Listing Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      className="h-10 w-full rounded-xl border border-border bg-muted/10 px-3 text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-[#B5651D]/25 focus:border-[#B5651D]/40"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-widest block">Price (₹)</label>
+                    <input
+                      type="number"
+                      required
+                      min="0"
+                      value={editPrice}
+                      onChange={(e) => setEditPrice(Number(e.target.value))}
+                      className="h-10 w-full rounded-xl border border-border bg-muted/10 px-3 text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-[#B5651D]/25 focus:border-[#B5651D]/40"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-widest block">Description</label>
+                    <textarea
+                      rows={3}
+                      value={editDescription}
+                      onChange={(e) => setEditDescription(e.target.value)}
+                      className="w-full rounded-xl border border-border bg-muted/10 p-3 text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-[#B5651D]/25 focus:border-[#B5651D]/40 resize-none"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-widest block">Status</label>
+                    <select
+                      value={editStatus}
+                      onChange={(e) => setEditStatus(e.target.value as any)}
+                      className="h-10 w-full rounded-xl border border-border bg-card px-3 text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-[#B5651D]/25 focus:border-[#B5651D]/40"
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="approved">Approved</option>
+                      <option value="rejected">Rejected</option>
+                      <option value="sold">Sold</option>
+                      <option value="inactive">Inactive</option>
+                    </select>
+                  </div>
+
+                  <div className="pt-4 flex items-center justify-end gap-3 border-t border-border/30">
+                    <Dialog.Close asChild>
+                      <button
+                        type="button"
+                        className="h-10 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest bg-muted text-muted-foreground hover:bg-muted/80 transition-all"
+                      >
+                        Cancel
+                      </button>
+                    </Dialog.Close>
+                    <button
+                      type="submit"
+                      disabled={updateProductMutation.isPending}
+                      className="h-10 px-5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-[linear-gradient(268.96deg,#B5651D_0.19%,#FE9738_99.72%)] text-white shadow-lg shadow-[#B5651D]/20 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-1.5"
+                    >
+                      {updateProductMutation.isPending ? (
+                        <IconLoader2 size={14} className="animate-spin" />
+                      ) : (
+                        <IconDeviceFloppy size={14} />
+                      )}
+                      Save Changes
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
     </div>
   );
 }
