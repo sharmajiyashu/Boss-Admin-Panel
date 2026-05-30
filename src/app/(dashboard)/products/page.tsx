@@ -24,7 +24,8 @@ import {
   IconTag,
   IconInfoCircle,
   IconEdit,
-  IconTrash
+  IconTrash,
+  IconAlertCircle
 } from "@tabler/icons-react";
 import { twMerge } from "tailwind-merge";
 import * as Dialog from "@radix-ui/react-dialog";
@@ -43,6 +44,7 @@ export default function ProductsPage() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [activeImageUrl, setActiveImageUrl] = useState<string | null>(null);
+  const [isDeleteAllOpen, setIsDeleteAllOpen] = useState(false);
 
   const [selectedEditProduct, setSelectedEditProduct] = useState<Product | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -110,6 +112,18 @@ export default function ProductsPage() {
     },
   });
 
+  const deleteAllMutation = useMutation({
+    mutationFn: () => productService.deleteAllProducts(),
+    onSuccess: () => {
+      toast.success("All products deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      setIsDeleteAllOpen(false);
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to delete all products");
+    },
+  });
+
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Product> }) =>
       productService.updateProduct(id, data),
@@ -149,6 +163,16 @@ export default function ProductsPage() {
               Review and approve seller listings before they go live safely.
             </p>
           </div>
+
+          {products.length > 0 && (
+            <button
+              onClick={() => setIsDeleteAllOpen(true)}
+              className="h-9 px-4 rounded-xl bg-red-500 hover:bg-red-600 text-white text-[11px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-red-500/10 hover:opacity-95 active:scale-95 transition-all outline-none border-none sm:self-end"
+            >
+              <IconTrash size={14} />
+              Delete All
+            </button>
+          )}
         </div>
 
         {/* Filter Panel */}
@@ -816,6 +840,39 @@ export default function ProductsPage() {
                 </form>
               </div>
             )}
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+
+      {/* Delete All Confirmation Modal */}
+      <Dialog.Root open={isDeleteAllOpen} onOpenChange={setIsDeleteAllOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" />
+          <Dialog.Content className="fixed left-[50%] top-[45%] z-[101] w-full max-w-[300px] translate-x-[-50%] translate-y-[-50%] rounded-2xl border-0 bg-white p-6 shadow-2xl ring-1 ring-slate-100 animate-in zoom-in-95 fade-in duration-200">
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="h-12 w-12 rounded-full bg-red-50 text-red-500 flex items-center justify-center shadow-inner animate-pulse">
+                <IconAlertCircle size={24} className="text-red-500" />
+              </div>
+              <div>
+                <Dialog.Title className="text-sm font-bold text-slate-800">Purge ALL Products?</Dialog.Title>
+                <Dialog.Description className="text-[10px] font-bold text-red-400 uppercase tracking-widest mt-1">
+                  WARNING: This will permanently delete all listing data. This action is irreversible.
+                </Dialog.Description>
+              </div>
+
+              <div className="flex gap-2 w-full pt-2">
+                <Dialog.Close className="h-9 flex-1 rounded-xl bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-400 ring-1 ring-slate-100 transition-all hover:bg-slate-100">
+                  Cancel
+                </Dialog.Close>
+                <button
+                  onClick={() => deleteAllMutation.mutate()}
+                  disabled={deleteAllMutation.isPending}
+                  className="flex-1 h-9 rounded-xl bg-red-500 text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-red-600 shadow-lg shadow-red-200 transition-all active:scale-95 disabled:opacity-50"
+                >
+                  {deleteAllMutation.isPending ? <IconLoader2 size={16} className="animate-spin" /> : "Purge All"}
+                </button>
+              </div>
+            </div>
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>

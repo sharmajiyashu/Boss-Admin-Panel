@@ -92,6 +92,13 @@ export const productService = {
   },
 
   /**
+   * Delete all products
+   */
+  deleteAllProducts: async (): Promise<any> => {
+    return deleteRequest<any>("/admin/products");
+  },
+
+  /**
    * Update a product
    */
   updateProduct: async (productId: string, data: Partial<Product>): Promise<Product> => {

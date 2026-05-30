@@ -160,11 +160,10 @@ function ToolbarButton({
         e.preventDefault();
         onClick();
       }}
-      className={`rounded p-1.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 disabled:pointer-events-none disabled:opacity-50 ${
-        active
-          ? "bg-primary/15 text-primary"
-          : "text-muted-foreground hover:bg-muted hover:text-foreground"
-      }`}
+      className={`rounded p-1.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 disabled:pointer-events-none disabled:opacity-50 ${active
+        ? "bg-primary/15 text-primary"
+        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+        }`}
     >
       {children}
     </button>
@@ -225,6 +224,15 @@ export function RichTextEditor({
     if (editor == null) return;
     editor.setEditable(!disabled);
   }, [editor, disabled]);
+
+  React.useEffect(() => {
+    if (editor == null) return;
+    // Only update content if it has changed externally (e.g. loaded from API) and the user is not actively typing
+    const normalizedValue = toEditorHtml(value);
+    if (!editor.isFocused && editor.getHTML() !== normalizedValue) {
+      editor.commands.setContent(normalizedValue);
+    }
+  }, [editor, value]);
 
   const [activeFormats, setActiveFormats] = React.useState({
     bold: false,
@@ -310,7 +318,7 @@ export function RichTextEditor({
           >
             <s>S</s>
           </ToolbarButton>
-          </div>
+        </div>
         <ToolbarDivider />
         <div className="flex items-center gap-0.5">
           <ToolbarButton

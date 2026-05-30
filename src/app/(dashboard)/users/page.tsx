@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import {
   IconUsers,
@@ -14,21 +14,39 @@ import {
   IconRosetteFilled,
   IconEye,
   IconCoin,
+  IconTrash,
+  IconAlertCircle,
 } from "@tabler/icons-react";
 import { twMerge } from "tailwind-merge";
+import * as Dialog from "@radix-ui/react-dialog";
 import { userService, type IUser } from "@/lib/services/userService";
+import { toast } from "react-toastify";
 import Image from "next/image";
 
 export default function UsersPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
+  const [isDeleteAllOpen, setIsDeleteAllOpen] = useState(false);
 
   // ── Queries ──
   const { data: usersData, isLoading, isRefetching, refetch } = useQuery({
     queryKey: ["users", page, limit, searchTerm],
     queryFn: () => userService.getUsers(page, limit, searchTerm),
+  });
+
+  const deleteAllMutation = useMutation({
+    mutationFn: () => userService.deleteAllUsers(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success("All users deleted successfully");
+      setIsDeleteAllOpen(false);
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to delete all users");
+    },
   });
 
   const users = usersData?.data || [];
@@ -98,6 +116,16 @@ export default function UsersPage() {
           >
             <IconReload size={14} className={twMerge((isLoading || isRefetching) && "animate-spin")} />
           </button>
+
+          {users.length > 0 && (
+            <button
+              onClick={() => setIsDeleteAllOpen(true)}
+              className="h-9 px-4 rounded-xl bg-red-500 hover:bg-red-600 text-white text-[11px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-red-500/10 hover:opacity-95 active:scale-95 transition-all outline-none border-none"
+            >
+              <IconTrash size={14} />
+              Delete All
+            </button>
+          )}
         </div>
       </div>
 
@@ -295,6 +323,39 @@ export default function UsersPage() {
           </>
         )}
       </div>
+
+      {/* Delete All Confirmation Modal */}
+      <Dialog.Root open={isDeleteAllOpen} onOpenChange={setIsDeleteAllOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-50 bg-slate-900/10 backdrop-blur-sm animate-in fade-in duration-150" />
+          <Dialog.Content className="fixed left-[50%] top-[45%] z-50 w-full max-w-[300px] translate-x-[-50%] translate-y-[-50%] rounded-2xl border-0 bg-white p-6 shadow-2xl ring-1 ring-slate-100 animate-in zoom-in-95 fade-in duration-200">
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="h-12 w-12 rounded-full bg-red-50 text-red-500 flex items-center justify-center shadow-inner animate-pulse">
+                <IconAlertCircle size={24} />
+              </div>
+              <div>
+                <Dialog.Title className="text-sm font-bold text-slate-800">Purge ALL Users?</Dialog.Title>
+                <Dialog.Description className="text-[10px] font-bold text-red-400 uppercase tracking-widest mt-1">
+                  WARNING: This will permanently delete all registered user accounts. This action is irreversible.
+                </Dialog.Description>
+              </div>
+
+              <div className="flex gap-2 w-full pt-2">
+                <Dialog.Close className="h-9 flex-1 rounded-xl bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-400 ring-1 ring-slate-100 transition-all hover:bg-slate-100">
+                  Cancel
+                </Dialog.Close>
+                <button
+                  onClick={() => deleteAllMutation.mutate()}
+                  disabled={deleteAllMutation.isPending}
+                  className="flex-1 h-9 rounded-xl bg-red-500 text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-red-600 shadow-lg shadow-red-200 transition-all active:scale-95 disabled:opacity-50"
+                >
+                  {deleteAllMutation.isPending ? <IconLoader2 size={16} className="animate-spin" /> : "Purge All"}
+                </button>
+              </div>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
     </div>
   );
 }

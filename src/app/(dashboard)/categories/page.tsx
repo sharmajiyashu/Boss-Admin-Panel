@@ -29,6 +29,7 @@ export default function CategoriesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isDeleteAllOpen, setIsDeleteAllOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
@@ -81,6 +82,18 @@ export default function CategoriesPage() {
     },
     onError: (error: unknown) => {
       toast.error(getErrorMessage(error, "Failed to delete category"));
+    },
+  });
+
+  const deleteAllMutation = useMutation({
+    mutationFn: () => categoryService.deleteAllCategories(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      toast.success("All categories deleted successfully");
+      setIsDeleteAllOpen(false);
+    },
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Failed to delete all categories"));
     },
   });
 
@@ -171,6 +184,18 @@ export default function CategoriesPage() {
           >
             <IconReload className={twMerge("h-3.5 w-3.5", (isLoading || isRefetching) && "animate-spin")} />
           </button>
+
+          {categories.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setIsDeleteAllOpen(true)}
+              className="h-9 px-4 rounded-xl bg-red-500 hover:bg-red-600 text-white text-[11px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-red-500/10 hover:opacity-95 active:scale-95 transition-all outline-none border-none"
+              title="Delete All"
+            >
+              <IconTrash size={14} />
+              Delete All
+            </button>
+          )}
 
           <button
             type="button"
@@ -491,6 +516,39 @@ export default function CategoriesPage() {
                   className="flex-1 h-9 rounded-xl bg-red-500 text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-red-600 shadow-lg shadow-red-200 transition-all active:scale-95"
                 >
                   {deleteMutation.isPending ? <IconLoader2 size={16} className="animate-spin" /> : "Purge"}
+                </button>
+              </div>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+
+      {/* Delete All Confirmation */}
+      <Dialog.Root open={isDeleteAllOpen} onOpenChange={setIsDeleteAllOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-50 bg-slate-900/10 backdrop-blur-sm animate-in fade-in duration-150" />
+          <Dialog.Content className="fixed left-[50%] top-[45%] z-50 w-full max-w-[300px] translate-x-[-50%] translate-y-[-50%] rounded-2xl border-0 bg-white p-6 shadow-2xl ring-1 ring-slate-100 animate-in zoom-in-95 fade-in duration-200">
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="h-12 w-12 rounded-full bg-red-50 text-red-500 flex items-center justify-center shadow-inner animate-pulse">
+                <IconAlertCircle size={24} />
+              </div>
+              <div>
+                <Dialog.Title className="text-sm font-bold text-slate-800">Purge ALL Categories?</Dialog.Title>
+                <Dialog.Description className="text-[10px] font-bold text-red-400 uppercase tracking-widest mt-1">
+                  WARNING: This will permanently delete all classification data. This action is irreversible.
+                </Dialog.Description>
+              </div>
+
+              <div className="flex gap-2 w-full pt-2">
+                <Dialog.Close className="h-9 flex-1 rounded-xl bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-400 ring-1 ring-slate-100 transition-all hover:bg-slate-100">
+                  Cancel
+                </Dialog.Close>
+                <button
+                  onClick={() => deleteAllMutation.mutate()}
+                  disabled={deleteAllMutation.isPending}
+                  className="flex-1 h-9 rounded-xl bg-red-500 text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-red-600 shadow-lg shadow-red-200 transition-all active:scale-95 disabled:opacity-50"
+                >
+                  {deleteAllMutation.isPending ? <IconLoader2 size={16} className="animate-spin" /> : "Purge All"}
                 </button>
               </div>
             </div>

@@ -9,7 +9,6 @@ import {
   IconDeviceFloppy,
   IconReload,
   IconInfoCircle,
-  IconMapPin
 } from "@tabler/icons-react";
 import { twMerge } from "tailwind-merge";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -88,7 +87,7 @@ export default function SettingsPage() {
           <button
             onClick={handleSave}
             disabled={updateMutation.isPending || isLoading}
-            className="h-9 px-4 rounded-xl bg-[linear-gradient(268.96deg,#B5651D_0.19%,#FE9738_99.72%)] text-white text-[11px] font-black uppercase tracking-widest shadow-md shadow-[#B5651D]/20 hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 flex items-center gap-2"
+            className="h-9 px-4 rounded-xl bg-[linear-gradient(268.96deg,#B5651D_0.19%,#FE9738_99.72%)] text-white text-[11px] font-black uppercase tracking-widest shadow-md shadow-[#B5651D]/20 hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 flex items-center gap-2 border-none outline-none"
           >
             <IconDeviceFloppy size={14} />
             {updateMutation.isPending ? "Saving..." : "Save Changes"}

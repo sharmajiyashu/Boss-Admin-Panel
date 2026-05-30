@@ -61,4 +61,11 @@ export const categoryService = {
   deleteCategory: async (id: string): Promise<void> => {
     return deleteRequest<void>(`/categories/${id}`);
   },
+
+  /**
+   * Delete all categories.
+   */
+  deleteAllCategories: async (): Promise<void> => {
+    return deleteRequest<void>("/categories");
+  },
 };

@@ -8,7 +8,8 @@ import {
   IconSettings,
   IconMapPin,
   IconBuildingCommunity,
-  IconWorld
+  IconWorld,
+  IconFileText
 } from "@tabler/icons-react";
 
 export interface SidebarNavItem {
@@ -54,4 +55,5 @@ export const sidebarNav: SidebarNavItemType[] = [
     ],
   },
   { titleKey: "nav.settings", href: "/settings", icon: IconSettings },
+  { titleKey: "nav.cms", href: "/cms", icon: IconFileText },
 ];

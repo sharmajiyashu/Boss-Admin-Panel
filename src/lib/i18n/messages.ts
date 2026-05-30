@@ -53,6 +53,7 @@ export const messages: Record<Locale, Record<string, string>> = {
     "nav.states": "States",
     "nav.cities": "Cities",
     "nav.settings": "App Settings",
+    "nav.cms": "CMS Management",
 
 
     "header.userMenu": "User menu",

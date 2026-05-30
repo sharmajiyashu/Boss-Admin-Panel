@@ -130,6 +130,10 @@ export const userService = {
     return deleteRequest<any>(`/users/${id}`);
   },
 
+  deleteAllUsers: async (): Promise<any> => {
+    return deleteRequest<any>("/users");
+  },
+
   uploadUserProfileImage: async (file: File): Promise<{ mediaId: string; url: string }> => {
     const formData = new FormData();
     formData.append("image", file);
