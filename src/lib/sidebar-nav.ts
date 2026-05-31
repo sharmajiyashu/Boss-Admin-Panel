@@ -9,7 +9,8 @@ import {
   IconMapPin,
   IconBuildingCommunity,
   IconWorld,
-  IconFileText
+  IconFileText,
+  IconPhone
 } from "@tabler/icons-react";
 
 export interface SidebarNavItem {
@@ -44,6 +45,7 @@ export const sidebarNav: SidebarNavItemType[] = [
   },
   { titleKey: "nav.products", href: "/products", icon: IconPackage },
   { titleKey: "nav.users", href: "/users", icon: IconUsers },
+  { titleKey: "nav.calls", href: "/calls", icon: IconPhone },
   {
     titleKey: "nav.locationManagement",
     href: "/location",

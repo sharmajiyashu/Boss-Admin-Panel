@@ -395,3 +395,10 @@ export const locationApi = {
   updateCity: (id: string, data: any) => put<City>(`/cities/${id}`, data),
   deleteCity: (id: string) => deleteRequest(`/cities/${id}`),
 };
+
+export const callApi = {
+  getScheduledCalls: (params?: { page?: number; limit?: number; search?: string; status?: string }) =>
+    get<any>('/calls', { params }),
+  getCallHistory: (params?: { page?: number; limit?: number; search?: string; status?: string }) =>
+    get<any>('/calls/history', { params }),
+};
