@@ -32,6 +32,7 @@ import { categoryService } from "@/lib/services/categoryService";
 import { getErrorMessage } from "@/lib/errorMessage";
 import { NativeSelect } from "@/components/ui/NativeSelect";
 import { toast } from "react-toastify";
+import { getManualFieldKeyIndices, labelToFieldKey } from "@/lib/fieldKey";
 
 const FIELD_TYPES = [
   "text",
@@ -80,6 +81,7 @@ export default function SubcategoriesPage() {
   });
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [dialogTab, setDialogTab] = useState<DialogTab>("details");
+  const [manualFieldKeys, setManualFieldKeys] = useState<Set<number>>(new Set());
 
   // Queries
   const { data: subData, isLoading, isRefetching } = useQuery({
@@ -138,17 +140,20 @@ export default function SubcategoriesPage() {
       customFieldDefinitions: []
     });
     setPreviewUrl(null);
+    setManualFieldKeys(new Set());
   };
 
   const loadSubIntoForm = (sub: Subcategory) => {
+    const customFieldDefinitions = sub.customFieldDefinitions || [];
     setFormData({
       name: sub.name,
       categoryId: subcategoryCategoryId(sub.category),
       description: sub.description || "",
       status: sub.status,
       media: null,
-      customFieldDefinitions: sub.customFieldDefinitions || [],
+      customFieldDefinitions,
     });
+    setManualFieldKeys(getManualFieldKeyIndices(customFieldDefinitions));
     setPreviewUrl(sub.media?.url || null);
   };
 
@@ -162,6 +167,7 @@ export default function SubcategoriesPage() {
       media: null,
       customFieldDefinitions: [],
     });
+    setManualFieldKeys(new Set());
     setPreviewUrl(null);
     setDialogTab("details");
     setIsAddOpen(true);
@@ -201,8 +207,9 @@ export default function SubcategoriesPage() {
     if (formData.media) data.append("media", formData.media);
 
     formData.customFieldDefinitions.forEach((def, index) => {
+      const key = def.key || labelToFieldKey(def.label);
       data.append(`customFieldDefinitions[${index}][label]`, def.label);
-      data.append(`customFieldDefinitions[${index}][key]`, def.key);
+      data.append(`customFieldDefinitions[${index}][key]`, key);
       data.append(`customFieldDefinitions[${index}][fieldType]`, def.fieldType);
       data.append(`customFieldDefinitions[${index}][isFilterable]`, String(def.isFilterable));
       data.append(`customFieldDefinitions[${index}][isRequired]`, String(def.isRequired));
@@ -232,10 +239,11 @@ export default function SubcategoriesPage() {
   };
 
   const removeField = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      customFieldDefinitions: prev.customFieldDefinitions.filter((_, i) => i !== index)
-    }));
+    setFormData((prev) => {
+      const customFieldDefinitions = prev.customFieldDefinitions.filter((_, i) => i !== index);
+      setManualFieldKeys(getManualFieldKeyIndices(customFieldDefinitions));
+      return { ...prev, customFieldDefinitions };
+    });
   };
 
   const updateField = (index: number, updates: Partial<FieldDefinition>) => {
@@ -244,6 +252,39 @@ export default function SubcategoriesPage() {
       customFieldDefinitions: prev.customFieldDefinitions.map((f, i) =>
         i === index ? { ...f, ...updates } : f
       )
+    }));
+  };
+
+  const updateFieldLabel = (index: number, label: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      customFieldDefinitions: prev.customFieldDefinitions.map((field, i) => {
+        if (i !== index) return field;
+        return {
+          ...field,
+          label,
+          key: manualFieldKeys.has(index) ? field.key : labelToFieldKey(label),
+        };
+      }),
+    }));
+  };
+
+  const updateFieldKey = (index: number, key: string) => {
+    setManualFieldKeys((prev) => new Set(prev).add(index));
+    updateField(index, { key });
+  };
+
+  const resetFieldKeyToAuto = (index: number) => {
+    setManualFieldKeys((prev) => {
+      const next = new Set(prev);
+      next.delete(index);
+      return next;
+    });
+    setFormData((prev) => ({
+      ...prev,
+      customFieldDefinitions: prev.customFieldDefinitions.map((field, i) =>
+        i === index ? { ...field, key: labelToFieldKey(field.label) } : field
+      ),
     }));
   };
 
@@ -802,18 +843,44 @@ export default function SubcategoriesPage() {
                               <label className="text-[9px] font-bold text-muted-foreground/60">Label</label>
                               <input
                                 value={field.label}
-                                onChange={(e) => updateField(idx, { label: e.target.value })}
+                                onChange={(e) => updateFieldLabel(idx, e.target.value)}
                                 className="h-8 w-full rounded-lg border-0 bg-muted/50 px-2.5 text-[11px] font-semibold text-foreground shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] outline-none focus:ring-2 focus:ring-[#B5651D]/20"
-                                placeholder="Shown to users"
+                                placeholder="e.g. Property Type"
                               />
                             </div>
                             <div className="space-y-0.5">
-                              <label className="text-[9px] font-bold text-muted-foreground/60">Key</label>
+                              <div className="flex items-center justify-between gap-2">
+                                <label className="text-[9px] font-bold text-muted-foreground/60">Key</label>
+                                {manualFieldKeys.has(idx) ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => resetFieldKeyToAuto(idx)}
+                                    className="text-[9px] font-bold text-[#B5651D] hover:underline"
+                                  >
+                                    Auto-generate
+                                  </button>
+                                ) : (
+                                  <span className="text-[9px] font-medium text-muted-foreground/50">
+                                    Auto from label
+                                  </span>
+                                )}
+                              </div>
                               <input
                                 value={field.key}
-                                onChange={(e) => updateField(idx, { key: e.target.value })}
-                                className="h-8 w-full rounded-lg border-0 bg-muted/50 px-2.5 font-mono text-[11px] text-foreground shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] outline-none focus:ring-2 focus:ring-[#B5651D]/20"
-                                placeholder="internal_key"
+                                onChange={(e) => updateFieldKey(idx, e.target.value)}
+                                readOnly={!manualFieldKeys.has(idx)}
+                                className={twMerge(
+                                  "h-8 w-full rounded-lg border-0 px-2.5 font-mono text-[11px] text-foreground shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] outline-none focus:ring-2 focus:ring-[#B5651D]/20",
+                                  manualFieldKeys.has(idx)
+                                    ? "bg-muted/50"
+                                    : "cursor-default bg-muted/30 text-muted-foreground"
+                                )}
+                                placeholder="property_type"
+                                onFocus={() => {
+                                  if (!manualFieldKeys.has(idx)) {
+                                    setManualFieldKeys((prev) => new Set(prev).add(idx));
+                                  }
+                                }}
                               />
                             </div>
                           </div>
