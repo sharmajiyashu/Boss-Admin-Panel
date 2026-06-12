@@ -4,7 +4,7 @@ import axios, {
 } from "axios";
 
 // const BASE_URL = "http://localhost:3000/v1/api/admin";
-const BASE_URL = "https://boss-backend-tan.vercel.app/v1/api/admin";
+const BASE_URL = "https://boss-backend.creatamax.in/v1/api/admin";
 
 
 const PUBLIC_PATHS = ["/health", "/auth/login", "/user/login", "/login"];
