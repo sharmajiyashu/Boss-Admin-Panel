@@ -7,6 +7,7 @@ export interface FieldDefinition {
   options?: string[];
   isFilterable: boolean;
   isRequired: boolean;
+  sortOrder?: number;
 }
 
 /** API may return a Mongo id string or a populated category object. */

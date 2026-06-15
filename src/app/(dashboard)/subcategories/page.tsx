@@ -18,6 +18,9 @@ import {
   IconChevronLeft,
   IconChevronRight,
   IconForms,
+  IconArrowUp,
+  IconArrowDown,
+  IconGripVertical,
 } from "@tabler/icons-react";
 import { twMerge } from "tailwind-merge";
 import * as Dialog from "@radix-ui/react-dialog";
@@ -32,7 +35,7 @@ import { categoryService } from "@/lib/services/categoryService";
 import { getErrorMessage } from "@/lib/errorMessage";
 import { NativeSelect } from "@/components/ui/NativeSelect";
 import { toast } from "react-toastify";
-import { getManualFieldKeyIndices, labelToFieldKey } from "@/lib/fieldKey";
+import { getManualFieldKeyIndices, labelToFieldKey, reorderArrayItem } from "@/lib/fieldKey";
 
 const FIELD_TYPES = [
   "text",
@@ -44,6 +47,10 @@ const FIELD_TYPES = [
   "switch",
   "checkbox",
 ] as const satisfies readonly FieldDefinition["fieldType"][];
+
+function sortFieldDefinitions(fields: FieldDefinition[]): FieldDefinition[] {
+  return [...fields].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+}
 
 function isFieldType(value: string): value is FieldDefinition["fieldType"] {
   return (FIELD_TYPES as readonly string[]).includes(value);
@@ -144,7 +151,7 @@ export default function SubcategoriesPage() {
   };
 
   const loadSubIntoForm = (sub: Subcategory) => {
-    const customFieldDefinitions = sub.customFieldDefinitions || [];
+    const customFieldDefinitions = sortFieldDefinitions(sub.customFieldDefinitions || []);
     setFormData({
       name: sub.name,
       categoryId: subcategoryCategoryId(sub.category),
@@ -213,6 +220,7 @@ export default function SubcategoriesPage() {
       data.append(`customFieldDefinitions[${index}][fieldType]`, def.fieldType);
       data.append(`customFieldDefinitions[${index}][isFilterable]`, String(def.isFilterable));
       data.append(`customFieldDefinitions[${index}][isRequired]`, String(def.isRequired));
+      data.append(`customFieldDefinitions[${index}][sortOrder]`, String(index));
 
       if (['select', 'switch', 'checkbox'].includes(def.fieldType) && def.options) {
         def.options.forEach((opt, optIdx) => {
@@ -241,6 +249,15 @@ export default function SubcategoriesPage() {
   const removeField = (index: number) => {
     setFormData((prev) => {
       const customFieldDefinitions = prev.customFieldDefinitions.filter((_, i) => i !== index);
+      setManualFieldKeys(getManualFieldKeyIndices(customFieldDefinitions));
+      return { ...prev, customFieldDefinitions };
+    });
+  };
+
+  const moveField = (index: number, direction: "up" | "down") => {
+    const toIndex = direction === "up" ? index - 1 : index + 1;
+    setFormData((prev) => {
+      const customFieldDefinitions = reorderArrayItem(prev.customFieldDefinitions, index, toIndex);
       setManualFieldKeys(getManualFieldKeyIndices(customFieldDefinitions));
       return { ...prev, customFieldDefinitions };
     });
@@ -788,7 +805,7 @@ export default function SubcategoriesPage() {
                 className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4"
               >
                 <p className="text-[10px] font-medium leading-snug text-muted-foreground">
-                  Extra attributes for product listings in this subcategory. Switch to{" "}
+                  Extra attributes for product listings in this subcategory. Use the arrows to set display order on the add listing page. Switch to{" "}
                   <button
                     type="button"
                     className="font-bold text-[#B5651D] underline-offset-2 hover:underline"
@@ -828,15 +845,40 @@ export default function SubcategoriesPage() {
                           className="space-y-3 rounded-xl bg-card p-3 shadow-sm ring-1 ring-black/[0.05]"
                         >
                           <div className="flex items-start justify-between gap-2">
-                            <span className="text-[10px] font-bold text-muted-foreground/60">Field {idx + 1}</span>
-                            <button
-                              type="button"
-                              onClick={() => removeField(idx)}
-                              className="shrink-0 rounded-md p-1 text-muted-foreground hover:bg-red-50 hover:text-red-600"
-                              aria-label="Remove field"
-                            >
-                              <IconX size={14} />
-                            </button>
+                            <div className="flex items-center gap-1.5">
+                              <IconGripVertical size={14} className="shrink-0 text-muted-foreground/40" aria-hidden />
+                              <span className="text-[10px] font-bold text-muted-foreground/60">
+                                Field {idx + 1}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-0.5">
+                              <button
+                                type="button"
+                                onClick={() => moveField(idx, "up")}
+                                disabled={idx === 0}
+                                className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
+                                aria-label={`Move field ${idx + 1} up`}
+                              >
+                                <IconArrowUp size={14} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => moveField(idx, "down")}
+                                disabled={idx === formData.customFieldDefinitions.length - 1}
+                                className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
+                                aria-label={`Move field ${idx + 1} down`}
+                              >
+                                <IconArrowDown size={14} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => removeField(idx)}
+                                className="shrink-0 rounded-md p-1 text-muted-foreground hover:bg-red-50 hover:text-red-600"
+                                aria-label="Remove field"
+                              >
+                                <IconX size={14} />
+                              </button>
+                            </div>
                           </div>
                           <div className="grid gap-2 sm:grid-cols-2">
                             <div className="space-y-0.5">
