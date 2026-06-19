@@ -55,6 +55,7 @@ export const messages: Record<Locale, Record<string, string>> = {
     "nav.cities": "Cities",
     "nav.settings": "App Settings",
     "nav.cms": "CMS Management",
+    "nav.notifications": "Notifications",
 
 
     "header.userMenu": "User menu",
@@ -115,6 +116,7 @@ export const messages: Record<Locale, Record<string, string>> = {
     "userDetails.connectionType": "Connection type",
     "userDetails.photos": "Profile photos",
     "common.logOut": "ចាកចេញ",
+    "nav.notifications": "ការជូនដំណឹង",
   },
 };
 
