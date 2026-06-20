@@ -3,7 +3,7 @@ import { get, postFormData, putFormData, deleteRequest } from '../api';
 export interface FieldDefinition {
   label: string;
   key: string;
-  fieldType: "text" | "number" | "boolean" | "date" | "select" | "textarea" | "switch" | "checkbox";
+  fieldType: "text" | "number" | "boolean" | "date" | "select" | "multiselect" | "textarea" | "switch" | "checkbox";
   options?: string[];
   isFilterable: boolean;
   isRequired: boolean;

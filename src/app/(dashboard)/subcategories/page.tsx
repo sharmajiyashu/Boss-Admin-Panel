@@ -43,6 +43,7 @@ const FIELD_TYPES = [
   "boolean",
   "date",
   "select",
+  "multiselect",
   "textarea",
   "switch",
   "checkbox",
@@ -222,7 +223,7 @@ export default function SubcategoriesPage() {
       data.append(`customFieldDefinitions[${index}][isRequired]`, String(def.isRequired));
       data.append(`customFieldDefinitions[${index}][sortOrder]`, String(index));
 
-      if (['select', 'switch', 'checkbox'].includes(def.fieldType) && def.options) {
+      if (['select', 'multiselect', 'switch', 'checkbox'].includes(def.fieldType) && def.options) {
         def.options.forEach((opt, optIdx) => {
           data.append(`customFieldDefinitions[${index}][options][${optIdx}]`, opt);
         });
@@ -963,7 +964,7 @@ export default function SubcategoriesPage() {
                               Filterable
                             </label>
                           </div>
-                          {["select", "switch", "checkbox"].includes(field.fieldType) && (
+                          {["select", "multiselect", "switch", "checkbox"].includes(field.fieldType) && (
                             <div className="space-y-2 border-t border-black/[0.06] pt-2">
                               <div className="flex items-center justify-between">
                                 <span className="text-[9px] font-bold text-muted-foreground/60">Options</span>
