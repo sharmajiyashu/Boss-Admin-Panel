@@ -65,7 +65,7 @@ export const productService = {
    * Get all products (all statuses) with filters and pagination
    */
   listAllProducts: async (filters: ProductFilters = {}): Promise<PaginatedProducts> => {
-    return get<PaginatedProducts>("/admin/products", {
+    return get<PaginatedProducts>("/products", {
       params: filters,
     });
   },
@@ -74,34 +74,34 @@ export const productService = {
    * Approve a product
    */
   approveProduct: async (productId: string): Promise<Product> => {
-    return patch<Product>(`/admin/products/${productId}/approve`);
+    return patch<Product>(`/products/${productId}/approve`);
   },
 
   /**
    * Reject a product
    */
   rejectProduct: async (productId: string): Promise<Product> => {
-    return patch<Product>(`/admin/products/${productId}/reject`);
+    return patch<Product>(`/products/${productId}/reject`);
   },
 
   /**
    * Delete a product
    */
   deleteProduct: async (productId: string): Promise<any> => {
-    return deleteRequest<any>(`/admin/products/${productId}`);
+    return deleteRequest<any>(`/products/${productId}`);
   },
 
   /**
    * Delete all products
    */
   deleteAllProducts: async (): Promise<any> => {
-    return deleteRequest<any>("/admin/products");
+    return deleteRequest<any>("/products");
   },
 
   /**
    * Update a product
    */
   updateProduct: async (productId: string, data: Partial<Product>): Promise<Product> => {
-    return put<Product>(`/admin/products/${productId}`, data);
+    return put<Product>(`/products/${productId}`, data);
   },
 };

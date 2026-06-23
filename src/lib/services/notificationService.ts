@@ -30,14 +30,14 @@ export interface INotificationsResponse {
 
 export const notificationService = {
   getNotifications: async (page = 1, limit = 10): Promise<INotificationsResponse> => {
-    return get<INotificationsResponse>(`/admin/notifications?page=${page}&limit=${limit}`);
+    return get<INotificationsResponse>(`/notifications?page=${page}&limit=${limit}`);
   },
 
   sendBroadcast: async (title: string, message: string): Promise<INotification> => {
-    return post<INotification>("/admin/notifications/send-all", { title, message });
+    return post<INotification>("/notifications/send-all", { title, message });
   },
 
   markAsRead: async (id: string): Promise<{ success: boolean }> => {
-    return patch<{ success: boolean }>(`/admin/notifications/${id}/read`, {});
+    return patch<{ success: boolean }>(`/notifications/${id}/read`, {});
   }
 };
