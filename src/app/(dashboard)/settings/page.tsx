@@ -9,10 +9,11 @@ import {
   IconDeviceFloppy,
   IconReload,
   IconInfoCircle,
+  IconMapPin,
 } from "@tabler/icons-react";
 import { twMerge } from "tailwind-merge";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { settingService } from "@/lib/services/settingService";
+import { settingService, type LocationRange } from "@/lib/services/settingService";
 import { toast } from "sonner";
 
 export default function SettingsPage() {
@@ -20,6 +21,11 @@ export default function SettingsPage() {
   const [platformFees, setPlatformFees] = useState<number | "">(0);
   const [reportReasons, setReportReasons] = useState<string[]>([]);
   const [newReason, setNewReason] = useState("");
+  
+  const [locationRanges, setLocationRanges] = useState<LocationRange[]>([]);
+  const [newRangeMin, setNewRangeMin] = useState<number | "">("");
+  const [newRangeMax, setNewRangeMax] = useState<number | "">("");
+  const [newRangeLabel, setNewRangeLabel] = useState("");
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ["settings"],
@@ -30,11 +36,19 @@ export default function SettingsPage() {
     if (data) {
       setPlatformFees(data.platformFees);
       setReportReasons(data.reportReasons || []);
+      setLocationRanges(data.locationRanges || []);
     }
   }, [data]);
 
+  // Auto-generate label when min and max are set
+  useEffect(() => {
+    if (newRangeMin !== "" && newRangeMax !== "") {
+      setNewRangeLabel(`${newRangeMin} to ${newRangeMax} km`);
+    }
+  }, [newRangeMin, newRangeMax]);
+
   const updateMutation = useMutation({
-    mutationFn: (payload: { platformFees?: number; reportReasons?: string[] }) =>
+    mutationFn: (payload: { platformFees?: number; reportReasons?: string[]; locationRanges?: LocationRange[] }) =>
       settingService.updateSettings(payload),
     onSuccess: () => {
       toast.success("Settings updated successfully");
@@ -56,10 +70,47 @@ export default function SettingsPage() {
     setReportReasons(reportReasons.filter((r) => r !== reason));
   };
 
+  const handleAddLocationRange = () => {
+    if (newRangeMin !== "" && newRangeMax !== "" && newRangeLabel.trim()) {
+      const min = Math.floor(Number(newRangeMin));
+      const max = Math.floor(Number(newRangeMax));
+
+      if (min < 0 || max < 0) {
+        return toast.error("Ranges must be non-negative integers");
+      }
+      if (min >= max) {
+        return toast.error("Max range must be greater than Min range");
+      }
+
+      const newRangeObj: LocationRange = {
+        id: `range_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+        min,
+        max,
+        label: newRangeLabel.trim(),
+      };
+
+      if (!locationRanges.some(r => r.min === min && r.max === max)) {
+        setLocationRanges([...locationRanges, newRangeObj]);
+        setNewRangeMin("");
+        setNewRangeMax("");
+        setNewRangeLabel("");
+      } else {
+        toast.error("A range with these limits already exists.");
+      }
+    } else {
+      toast.warning("Please fill in min, max, and label.");
+    }
+  };
+
+  const handleRemoveLocationRange = (range: LocationRange) => {
+    setLocationRanges(locationRanges.filter((r) => r.id !== range.id));
+  };
+
   const handleSave = () => {
     updateMutation.mutate({
       platformFees: platformFees === "" ? 0 : platformFees,
       reportReasons,
+      locationRanges,
     });
   };
 
@@ -70,7 +121,7 @@ export default function SettingsPage() {
         <div>
           <h1 className="text-xl font-bold tracking-tight text-foreground">App Settings</h1>
           <p className="mt-1 text-sm font-medium text-muted-foreground">
-            Configure platform fees and moderation guidelines.
+            Configure platform fees, location filters, and moderation guidelines.
           </p>
         </div>
 
@@ -142,9 +193,95 @@ export default function SettingsPage() {
             <h3 className="text-xs font-black uppercase tracking-widest text-slate-700">Configuration Guide</h3>
             <ul className="text-[11px] text-slate-400 mt-3 leading-relaxed space-y-2 list-disc pl-4">
               <li>Platform fees configure standard billing rules across the BOSS market system.</li>
+              <li>Location ranges define distance filters available to users in the mobile app.</li>
               <li>Report reasons define the guidelines users can choose when flagging posts.</li>
               <li>Click <strong>Save Changes</strong> in the top-right header to persist your updates.</li>
             </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* Location Ranges Card */}
+      <div className="rounded-xl border border-slate-100 bg-white shadow-sm overflow-hidden">
+        <div className="p-6 space-y-6">
+          <div className="flex items-center gap-2 text-slate-800">
+            <IconMapPin size={18} className="text-[#B5651D]" />
+            <h2 className="text-xs font-black uppercase tracking-widest">Location Filters (Ranges)</h2>
+          </div>
+
+          <p className="text-[11px] text-slate-400 leading-relaxed">
+            Define distance options for search filters in the mobile application (e.g. &quot;0 to 10 km&quot;).
+          </p>
+
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 max-w-2xl items-end">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Min Km</label>
+                <input
+                  type="number"
+                  value={newRangeMin}
+                  onChange={(e) => setNewRangeMin(e.target.value === "" ? "" : Math.floor(Number(e.target.value)))}
+                  className="h-10 w-full rounded-xl border border-slate-100 bg-slate-50/30 px-3 text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-[#B5651D]/25 focus:border-[#B5651D]/40"
+                  placeholder="0"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Max Km</label>
+                <input
+                  type="number"
+                  value={newRangeMax}
+                  onChange={(e) => setNewRangeMax(e.target.value === "" ? "" : Math.floor(Number(e.target.value)))}
+                  className="h-10 w-full rounded-xl border border-slate-100 bg-slate-50/30 px-3 text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-[#B5651D]/25 focus:border-[#B5651D]/40"
+                  placeholder="10"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Label</label>
+                <input
+                  type="text"
+                  value={newRangeLabel}
+                  onChange={(e) => setNewRangeLabel(e.target.value)}
+                  className="h-10 w-full rounded-xl border border-slate-100 bg-slate-50/30 px-3 text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-[#B5651D]/25 focus:border-[#B5651D]/40"
+                  placeholder="0 to 10 km"
+                />
+              </div>
+              <button
+                onClick={handleAddLocationRange}
+                className="h-10 px-4 flex items-center justify-center gap-1.5 rounded-xl bg-foreground text-background hover:bg-[#B5651D] hover:text-white transition-all shadow-sm active:scale-95 text-[10px] font-black uppercase tracking-widest"
+              >
+                <IconPlus size={14} />
+                Add Range
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
+              {locationRanges.map((range) => (
+                <div
+                  key={range.id}
+                  className="flex items-center justify-between p-3.5 rounded-xl border border-slate-50 bg-slate-50/20 group hover:border-[#B5651D]/30 hover:bg-white transition-all shadow-sm shadow-transparent hover:shadow-black/[0.02]"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="h-1.5 w-1.5 rounded-full bg-[#B5651D]/40 group-hover:bg-[#B5651D] transition-colors shrink-0" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[12px] font-bold text-slate-700 truncate">{range.label}</span>
+                      <span className="text-[9px] font-medium text-slate-400">{range.min} km to {range.max} km</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleRemoveLocationRange(range)}
+                    className="h-7 w-7 flex items-center justify-center rounded-lg text-slate-300 hover:bg-rose-50 hover:text-rose-500 transition-all opacity-0 group-hover:opacity-100 shrink-0"
+                    title="Remove Range"
+                  >
+                    <IconTrash size={14} />
+                  </button>
+                </div>
+              ))}
+              {locationRanges.length === 0 && !isLoading && (
+                <div className="col-span-full py-8 text-center text-[11px] text-slate-400 italic">
+                  No location ranges defined.
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

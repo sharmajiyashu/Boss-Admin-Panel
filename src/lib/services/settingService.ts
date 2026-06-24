@@ -1,9 +1,17 @@
 import { get, patch } from "../api";
 
+export interface LocationRange {
+  id: string;
+  min: number;
+  max: number;
+  label: string;
+}
+
 export interface AppSettings {
   _id: string;
   platformFees: number;
   reportReasons: string[];
+  locationRanges: LocationRange[];
   createdAt: string;
   updatedAt: string;
 }
@@ -11,6 +19,7 @@ export interface AppSettings {
 export interface UpdateSettingsData {
   platformFees?: number;
   reportReasons?: string[];
+  locationRanges?: LocationRange[];
 }
 
 export const settingService = {

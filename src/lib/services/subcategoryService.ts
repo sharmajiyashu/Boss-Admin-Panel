@@ -8,6 +8,7 @@ export interface FieldDefinition {
   isFilterable: boolean;
   isRequired: boolean;
   sortOrder?: number;
+  hasOtherOption?: boolean;
 }
 
 /** API may return a Mongo id string or a populated category object. */
@@ -29,7 +30,7 @@ export function subcategoryCategoryName(ref: SubcategoryCategoryRef): string {
   if (typeof ref === "object" && ref !== null && typeof ref.name === "string" && ref.name.trim()) {
     return ref.name;
   }
-  return "N/A";
+  return "Main Category";
 }
 
 export interface Subcategory {

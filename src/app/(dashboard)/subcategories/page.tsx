@@ -205,11 +205,12 @@ export default function SubcategoriesPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.categoryId) return toast.warning("Please select a parent category");
 
     const data = new FormData();
     data.append("name", formData.name);
-    data.append("category", formData.categoryId);
+    if (formData.categoryId) {
+      data.append("category", formData.categoryId);
+    }
     data.append("description", formData.description);
     data.append("status", formData.status);
     if (formData.media) data.append("media", formData.media);
@@ -222,6 +223,7 @@ export default function SubcategoriesPage() {
       data.append(`customFieldDefinitions[${index}][isFilterable]`, String(def.isFilterable));
       data.append(`customFieldDefinitions[${index}][isRequired]`, String(def.isRequired));
       data.append(`customFieldDefinitions[${index}][sortOrder]`, String(index));
+      data.append(`customFieldDefinitions[${index}][hasOtherOption]`, String(!!def.hasOtherOption));
 
       if (['select', 'multiselect', 'switch', 'checkbox'].includes(def.fieldType) && def.options) {
         def.options.forEach((opt, optIdx) => {
@@ -737,12 +739,11 @@ export default function SubcategoriesPage() {
                 <div className="space-y-1">
                   <label className="ml-1 text-[10px] font-bold text-muted-foreground/70">Parent category</label>
                   <NativeSelect
-                    required
                     value={formData.categoryId}
                     onChange={(e) => setFormData((p) => ({ ...p, categoryId: e.target.value }))}
                     className="text-xs font-semibold"
                   >
-                    <option value="">Select category…</option>
+                    <option value="">None (Make Main Category)</option>
                     {cats.map((c) => (
                       <option key={c._id || c.id} value={c._id || c.id}>
                         {c.name}
@@ -976,6 +977,17 @@ export default function SubcategoriesPage() {
                                   Add option
                                 </button>
                               </div>
+                              {["select", "multiselect"].includes(field.fieldType) && (
+                                <label className="flex cursor-pointer items-center gap-2 text-[10px] font-semibold text-foreground pb-1">
+                                  <input
+                                    type="checkbox"
+                                    checked={!!field.hasOtherOption}
+                                    onChange={(e) => updateField(idx, { hasOtherOption: e.target.checked })}
+                                    className="h-3.5 w-3.5 rounded border-border"
+                                  />
+                                  Include &quot;Other&quot; option (allows custom input in app)
+                                </label>
+                              )}
                               <div className="flex flex-col gap-2">
                                 {field.options?.map((opt, optIdx) => (
                                   <div key={optIdx} className="flex gap-1">

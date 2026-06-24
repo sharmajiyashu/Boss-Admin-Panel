@@ -11,7 +11,8 @@ import {
   IconWorld,
   IconFileText,
   IconPhone,
-  IconBell
+  IconBell,
+  IconQuestionMark
 } from "@tabler/icons-react";
 
 export interface SidebarNavItem {
@@ -60,4 +61,5 @@ export const sidebarNav: SidebarNavItemType[] = [
   { titleKey: "nav.notifications", href: "/notifications", icon: IconBell },
   { titleKey: "nav.settings", href: "/settings", icon: IconSettings },
   { titleKey: "nav.cms", href: "/cms", icon: IconFileText },
+  { titleKey: "nav.faqs", href: "/faqs", icon: IconQuestionMark },
 ];
