@@ -100,7 +100,7 @@ function isPublicPath(path: string): boolean {
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
   const token = localStorage.getItem(TOKEN_KEY);
-  if (!token) return null;
+  if (!token || token === "undefined" || token === "null") return null;
   const expiry = localStorage.getItem(TOKEN_EXPIRY_KEY);
   if (expiry) {
     const expiryMs = Number(expiry);

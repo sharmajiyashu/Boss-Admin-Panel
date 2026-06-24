@@ -15,12 +15,13 @@ export interface FieldDefinition {
 export type SubcategoryCategoryRef =
   | string
   | {
-      _id?: string;
-      id?: string;
-      name?: string;
-    };
+    _id?: string;
+    id?: string;
+    name?: string;
+  };
 
-export function subcategoryCategoryId(ref: SubcategoryCategoryRef): string {
+export function subcategoryCategoryId(ref: SubcategoryCategoryRef | null | undefined): string {
+  if (!ref) return "";
   if (typeof ref === "string") return ref;
   const id = ref._id ?? ref.id;
   return typeof id === "string" ? id : "";
