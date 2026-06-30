@@ -23,6 +23,8 @@ export default function SettingsPage() {
   const [newReason, setNewReason] = useState("");
   
   const [locationRanges, setLocationRanges] = useState<LocationRange[]>([]);
+  const [defaultNearbyEnabled, setDefaultNearbyEnabled] = useState(false);
+  const [defaultNearbyDistanceKm, setDefaultNearbyDistanceKm] = useState<number | "">(50);
   const [newRangeMin, setNewRangeMin] = useState<number | "">("");
   const [newRangeMax, setNewRangeMax] = useState<number | "">("");
   const [newRangeLabel, setNewRangeLabel] = useState("");
@@ -37,6 +39,8 @@ export default function SettingsPage() {
       setPlatformFees(data.platformFees);
       setReportReasons(data.reportReasons || []);
       setLocationRanges(data.locationRanges || []);
+      setDefaultNearbyEnabled(data.defaultNearbyEnabled ?? false);
+      setDefaultNearbyDistanceKm(data.defaultNearbyDistanceKm ?? 50);
     }
   }, [data]);
 
@@ -48,8 +52,13 @@ export default function SettingsPage() {
   }, [newRangeMin, newRangeMax]);
 
   const updateMutation = useMutation({
-    mutationFn: (payload: { platformFees?: number; reportReasons?: string[]; locationRanges?: LocationRange[] }) =>
-      settingService.updateSettings(payload),
+    mutationFn: (payload: {
+      platformFees?: number;
+      reportReasons?: string[];
+      locationRanges?: LocationRange[];
+      defaultNearbyEnabled?: boolean;
+      defaultNearbyDistanceKm?: number;
+    }) => settingService.updateSettings(payload),
     onSuccess: () => {
       toast.success("Settings updated successfully");
       queryClient.invalidateQueries({ queryKey: ["settings"] });
@@ -107,10 +116,17 @@ export default function SettingsPage() {
   };
 
   const handleSave = () => {
+    if (defaultNearbyEnabled && (defaultNearbyDistanceKm === "" || Number(defaultNearbyDistanceKm) <= 0)) {
+      toast.error("Please enter a valid default nearby distance in km");
+      return;
+    }
+
     updateMutation.mutate({
       platformFees: platformFees === "" ? 0 : platformFees,
       reportReasons,
       locationRanges,
+      defaultNearbyEnabled,
+      defaultNearbyDistanceKm: defaultNearbyDistanceKm === "" ? 50 : Number(defaultNearbyDistanceKm),
     });
   };
 
@@ -194,9 +210,52 @@ export default function SettingsPage() {
             <ul className="text-[11px] text-slate-400 mt-3 leading-relaxed space-y-2 list-disc pl-4">
               <li>Platform fees configure standard billing rules across the BOSS market system.</li>
               <li>Location ranges define distance filters available to users in the mobile app.</li>
+              <li>Default nearby distance auto-filters product listings near the user when enabled.</li>
               <li>Report reasons define the guidelines users can choose when flagging posts.</li>
               <li>Click <strong>Save Changes</strong> in the top-right header to persist your updates.</li>
             </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* Default Nearby Distance */}
+      <div className="rounded-xl border border-slate-100 bg-white shadow-sm overflow-hidden">
+        <div className="p-6 space-y-5">
+          <div className="flex items-center gap-2 text-slate-800">
+            <IconMapPin size={18} className="text-[#B5651D]" />
+            <h2 className="text-xs font-black uppercase tracking-widest">Default Nearby Me Distance</h2>
+          </div>
+
+          <p className="text-[11px] text-slate-400 leading-relaxed max-w-2xl">
+            When enabled, product listings use this distance by default from the user&apos;s location
+            (unless the app sends a specific range or city filter).
+          </p>
+
+          <label className="flex items-center gap-3 cursor-pointer w-fit">
+            <input
+              type="checkbox"
+              checked={defaultNearbyEnabled}
+              onChange={(e) => setDefaultNearbyEnabled(e.target.checked)}
+              className="h-4 w-4 rounded border-slate-300 text-[#B5651D] focus:ring-[#B5651D]/25"
+            />
+            <span className="text-[12px] font-bold text-slate-700">Enable default nearby product filter</span>
+          </label>
+
+          <div className={twMerge("space-y-1.5 max-w-[200px] transition-opacity", !defaultNearbyEnabled && "opacity-50 pointer-events-none")}>
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">
+              Default Distance (km)
+            </label>
+            <input
+              type="number"
+              min={1}
+              value={defaultNearbyDistanceKm}
+              onChange={(e) => {
+                const val = e.target.value;
+                setDefaultNearbyDistanceKm(val === "" ? "" : Math.floor(Number(val)));
+              }}
+              className="w-full h-10 rounded-xl border border-slate-100 bg-slate-50/30 px-3 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-[#B5651D]/25 focus:border-[#B5651D]/40"
+              placeholder="50"
+            />
           </div>
         </div>
       </div>

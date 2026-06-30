@@ -12,6 +12,8 @@ export interface AppSettings {
   platformFees: number;
   reportReasons: string[];
   locationRanges: LocationRange[];
+  defaultNearbyEnabled: boolean;
+  defaultNearbyDistanceKm: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -20,6 +22,8 @@ export interface UpdateSettingsData {
   platformFees?: number;
   reportReasons?: string[];
   locationRanges?: LocationRange[];
+  defaultNearbyEnabled?: boolean;
+  defaultNearbyDistanceKm?: number;
 }
 
 export const settingService = {
